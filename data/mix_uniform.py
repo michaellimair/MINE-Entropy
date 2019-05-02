@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
-class Uniform():
+class MixedUniform():
     def __init__(self, mix, width_a, width_b, n_samples):
         self.mix, self.width_a, self.width_b, self.n_samples = mix, width_a, width_b, n_samples
 
@@ -79,7 +79,7 @@ class Uniform():
 
 
 if __name__ == '__main__':
-    unif=Uniform(0.5, 10, 10, 200)
+    unif=MixedUniform(0.5, 10, 10, 200)
     data = unif.data
     import os
     import matplotlib

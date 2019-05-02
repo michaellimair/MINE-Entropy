@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
-class BiModal():
+class MixedGaussian():
     # Mixture of two bivariate gaussians
     #
     # data(mix,Mode,Rho,N) generates N samples with
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     # plt.show(block=False)
     # input("press enter to close")
     # plt.close(fig)
-    bimodel=BiModal()
+    bimodel=MixedGaussian()
     data = bimodel.data
     import os
     import matplotlib
