@@ -14,10 +14,11 @@ from .model.cart_regression import cartReg
 # from .model.klDiv import klDiv
 # from .model.condShannonEntropy import condShanEnt
 
-from .data.bimodal import BiModal
+
+from .data.mix_gaussian import MixedGaussian
+from .data.mix_uniform import MixedUniform
 from .data.gaussian import Gaussian
 from .data.uniform_mmi import UniformMMI
-from .data.uniform import Uniform
 import math
 import os
 from datetime import datetime
@@ -198,8 +199,8 @@ widths = list(range(2, 12, 2))
 
 
 data = {
-    'BiModal': {
-        'model': BiModal,
+    'Mixed Gaussian': {
+        'model': MixedGaussian,
         'kwargs': [  # list of params
             {
                 'n_samples':n_samples, 
@@ -225,8 +226,8 @@ data = {
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    'Uniform': {
-        'model': Uniform, 
+    'Mixed Uniform': {
+        'model': MixedUniform, 
         'kwargs': [
             {
                 'n_samples':n_samples, 
