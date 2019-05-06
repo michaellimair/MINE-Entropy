@@ -166,5 +166,67 @@ def run_experiment():
             break     
     plot(experiment_path)
 
+def run_experiment_batch_pop_ir():
+    batch = [ int(32), int(128), int(512)]
+    # batch = [int(2), int(8), int(256), int(512)]
+    pop = [ int(8192), int(512),int(2048)]
+    iterNum_ = int(625000)
+    snapshot = [int(iterNum_/1028), int(iterNum_/512), int(iterNum_/256), int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
+    # snapshot = [int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
+    for pop_ in pop:
+        for bat_ in batch:
+            experiment_name = "pop={}_batch={}".format(pop_, bat_)
+            experiment_path = os.path.join(settings.output_path, experiment_name)
+            settings.model['MINE_direct']['model'].batch_size = bat_
+            settings.model['MINE_entropy']['model'].batch_size = bat_
+            settings.model['MINE_multi_task']['model'].batch_size = bat_
+            settings.model['MINE_direct']['model'].iter_num = iterNum_
+            settings.model['MINE_entropy']['model'].iter_num = iterNum_
+            settings.model['MINE_multi_task']['model'].iter_num = iterNum_
+            settings.model['MINE_direct']['model'].iter_snapshot = snapshot
+            settings.model['MINE_entropy']['model'].iter_snapshot = snapshot
+            settings.model['MINE_multi_task']['model'].iter_snapshot = snapshot
+            settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
+                                                            {
+                                                                'n_samples': pop_, 
+                                                                'mean1':0, 
+                                                                'mean2':0, 
+                                                                'rho1': rho, 
+                                                                'rho2': -rho,
+                                                            } for rho in settings.rhos
+                                                        ]
+            settings.data['Gaussian']['kwargs'] = [
+                                                    {
+                                                        'n_samples':pop_, 
+                                                        'mean1':0, 
+                                                        'mean2':0, 
+                                                        'rho': rho,
+                                                    } for rho in settings.rhos
+                                                ]
+            settings.data['Mixed Uniform']['kwargs'] = [
+                                                        {
+                                                            'n_samples':pop_, 
+                                                            'width_a': width, 
+                                                            'width_b': width, 
+                                                            'mix': 0.5
+                                                        } for width in settings.widths
+                                                    ]
+
+            while True:
+                if os.path.exists(experiment_path):
+                    experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
+                    experiment_path = os.path.join(settings.output_path, experiment_name)
+                else:
+                    os.makedirs(experiment_path)
+                    print('Output will be saved into {}'.format(experiment_path))
+                    # save the settings
+                    from shutil import copyfile
+                    mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
+                    settings_path = os.path.join(mmi_dir_path, 'settings.py')
+                    copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
+                    break     
+            plot(experiment_path)
+
 if __name__ == "__main__":
-    run_experiment()
+    # run_experiment()
+    run_experiment_batch_pop_ir()

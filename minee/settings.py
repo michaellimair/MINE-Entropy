@@ -23,11 +23,11 @@ import math
 import os
 from datetime import datetime
 
-cpu = 20
+cpu = 70
 
-batch_size=256
+batch_size=64
 patience=int(250)
-iter_num=int(1e+9)
+iter_num=int(1e+4)
 lr = 2e-3
 moving_average_rate = 0.01
 
@@ -135,11 +135,45 @@ model = {
     #     ), 
     #     'color': 'pink'
     # }, 
-    'Cart Reg': {
-        'model': cartReg(
-            cvFold=3
+    # 'Cart Reg': {
+    #     'model': cartReg(
+    #         cvFold=3
+    #     ), 
+    #     'color': 'pink'
+    # },
+    'MINE_multi_task': {
+        'model': MineMultiTask(
+            lr=lr, 
+            batch_size=batch_size, 
+            patience=patience, 
+            iter_num=iter_num, 
+            log_freq=int(100), 
+            avg_freq=int(10), 
+            ma_rate=moving_average_rate, 
+            verbose=False,
+            log=True,
+            sample_mode='unif',
+            earlyStop=False,
+            add_mar=True
         ), 
-        'color': 'pink'
+        'color': 'grey'
+    },
+    'MINE_entropy': {
+        'model': MineMultiTask(
+            lr=lr, 
+            batch_size=batch_size, 
+            patience=patience, 
+            iter_num=iter_num, 
+            log_freq=int(100), 
+            avg_freq=int(10), 
+            ma_rate=moving_average_rate, 
+            verbose=False,
+            log=True,
+            sample_mode='unif',
+            earlyStop=False,
+            add_mar=False
+        ), 
+        'color': 'purple'
     },
     'MINE_direct': {
         'model': Mine(
@@ -152,38 +186,25 @@ model = {
             ma_rate=moving_average_rate, 
             verbose=False,
             log=True,
-            sample_mode='marginal'
+            sample_mode='marginal',
+            earlyStop=False
         ), 
         'color': 'orange'
     },
-    'MINE_multi_task': {
-        'model': MineMultiTask(
-            lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='unif'
-        ), 
-        'color': 'grey'
-    },
-    'MINE_entropy': {
-        'model': Mine_ent(
-            lr=lr,  
-            batch_size=batch_size, 
-            patience=patience,
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-        ), 
-        'color': 'purple'
-    },
+    # 'MINE_entropy': {
+    #     'model': Mine_ent(
+    #         lr=lr,  
+    #         batch_size=batch_size, 
+    #         patience=patience,
+    #         iter_num=iter_num, 
+    #         log_freq=int(100), 
+    #         avg_freq=int(10), 
+    #         ma_rate=moving_average_rate, 
+    #         verbose=False,
+    #         earlyStop=False
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'Jackknife': {
     #     'model': Jackknife(
     #         n_sim=5
@@ -192,6 +213,7 @@ model = {
     # }
 }
 
+# n_samples = 6400
 n_samples = batch_size * 20
 rhos = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 0.99, 0.999 ]
 # rhos = [0.999]

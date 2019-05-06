@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import xlogy
 
 class Gaussian():
     def __init__(self, n_samples, mean1, mean2, rho, varValue=0):
@@ -36,7 +37,7 @@ class Gaussian():
         def fy(y):
             return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1]) 
 
-        i = [np.log(fxy(xs[i,j], ys[i,j])/(fx(xs[i,j])*fy(ys[i,j]))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i = [xlogy(fxy(xs[i,j], ys[i,j]),fxy(xs[i,j], ys[i,j]))-xlogy(fx(xs[i,j]),fx(xs[i,j]))-xlogy(fy(ys[i,j]),fy(ys[i,j])) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
         i = np.array(i).reshape(xs.shape[0], ys.shape[1])
         i = i[:-1, :-1]
         i_min, i_max = -np.abs(i).max(), np.abs(i).max()

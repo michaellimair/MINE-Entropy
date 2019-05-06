@@ -95,7 +95,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label=""):
+    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[]):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20
@@ -121,6 +121,8 @@ class Mine():
         self.heatmap_frames = []  # for plotting heatmap animation
         self.mine_net = MineNet(input_size=len(self.cond)+1)
         self.mine_net_optim = optim.Adam(self.mine_net.parameters(), lr=self.lr)
+        self.earlyStop = earlyStop
+        self.iter_snapshot = iter_snapshot
 
     def fit(self, train_data, val_data):
         self.Xmin = min(train_data[:,0])
@@ -136,8 +138,9 @@ class Mine():
             log.write("log_freq={0}\n".format(self.log_freq))
             log.write("avg_freq={0}\n".format(self.avg_freq))
             log.write("patience={0}\n".format(self.patience))
+            log.write("iter_snapshot={0}\n".format(self.iter_snapshot))
             log.close()
-            heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+            # heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
         # data is x or y
         result = list()
         self.ma_et = 1.  # exponential of mi estimation on marginal data
@@ -148,7 +151,9 @@ class Mine():
         self.avg_train_mi_lb = []
         self.avg_valid_mi_lb = []
         
-        earlyStop = EarlyStopping(patience=self.patience, verbose=self.verbose, prefix=self.prefix)
+        if self.earlyStop:
+            earlyStop = EarlyStopping(patience=self.patience, verbose=self.verbose, prefix=self.prefix)
+        j = 0
         for i in range(self.iter_num):
             #get train data
             batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
@@ -175,11 +180,16 @@ class Mine():
                 train_mi_lb = []
                 valid_mi_lb = []
 
-                earlyStop(valid_loss, self.mine_net)
-                if (earlyStop.early_stop):
-                    if self.verbose:
-                        print("Early stopping")
-                    break
+                if self.earlyStop:
+                    earlyStop(valid_loss, self.mine_net)
+                    if (earlyStop.early_stop):
+                        if self.verbose:
+                            print("Early stopping")
+                        break
+            if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
+                mi_lb_ = self.forward_pass(val_data)
+                self.savefig(self.X, mi_lb_.item(), suffix="_iter={}".format(self.iter_snapshot[j]))
+                j += 1
                 # if self.log:
                     # x = np.linspace(self.Xmin, self.Xmax, 300)
                     # y = np.linspace(self.Ymin, self.Ymax, 300)
@@ -200,8 +210,9 @@ class Mine():
             avg_valid_mi_lb = np.array(self.avg_valid_mi_lb)
             np.savetxt(os.path.join(self.prefix, "avg_valid_mi_lb.txt"), avg_valid_mi_lb)
 
-        ch = os.path.join(self.prefix, "checkpoint.pt")
-        self.mine_net.load_state_dict(torch.load(ch))#'checkpoint.pt'))
+        if self.earlyStop:
+            ch = os.path.join(self.prefix, "checkpoint.pt")
+            self.mine_net.load_state_dict(torch.load(ch))#'checkpoint.pt'))
 
     
     def update_mine_net(self, batch, mine_net_optim, ma_rate=0.01):
@@ -258,10 +269,10 @@ class Mine():
             mutual information estimate
         """
         self.X = X
-        X_train, X_test = train_test_split(X, test_size=0.35, random_state=0)
-        self.fit(X_train, X_test)
+        self.X_train, self.X_test = train_test_split(X, test_size=0.35, random_state=0)
+        self.fit(self.X_train, self.X_test)
     
-        mi_lb = self.forward_pass(X_test).item()
+        mi_lb = self.forward_pass(self.X_test).item()
 
         if self.log:
             self.savefig(X, mi_lb)
@@ -276,12 +287,15 @@ class Mine():
         return mi_lb
 
 
-    def savefig(self, X, ml_lb_estimate):
+    def savefig(self, X, ml_lb_estimate, suffix=""):
         if len(self.cond) > 1:
             raise ValueError("Only support 2-dim or 1-dim")
         fig, ax = plt.subplots(1,4, figsize=(90, 15))
         #plot Data
-        ax[0].scatter(X[:,self.resp], X[:,self.cond], color='red', marker='o')
+        # ax[0].scatter(X[:,self.resp], X[:,self.cond], color='red', marker='o')
+        ax[0].scatter(self.X_train[:,self.resp], self.X_train[:,self.cond], color='red', marker='o', label='train')
+        ax[0].scatter(self.X_test[:,self.resp], self.X_test[:,self.cond], color='green', marker='x', label='test')
+        ax[0].legend()
 
         #plot training curve
         ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, self.avg_valid_mi_lb, ax[1])
@@ -307,7 +321,7 @@ class Mine():
         ax[3].set_xlabel(self.paramName)
         ax[3].set_ylabel(self.y_label)
         ax[3].legend()
-        figName = os.path.join(self.prefix, "MINE")
+        figName = os.path.join(self.prefix, "MINE{}".format(suffix))
         fig.savefig(figName, bbox_inches='tight')
         plt.close()
         
