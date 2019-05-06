@@ -44,12 +44,13 @@ def getResultPlot(ax, xs, z=None, sampleNum=0):
     return ax
 
 
-def getTrainCurve(train_loss, valid_loss, ax):
-    ax.plot(range(1,len(train_loss)+1),train_loss, label='Training Loss')
-    ax.plot(range(1,len(valid_loss)+1),valid_loss,label='Validation Loss')
-    # find position of lowest validation loss
-    minposs = valid_loss.index(min(valid_loss))+1 
-    ax.axvline(minposs, linestyle='--', color='r',label='Early Stopping Checkpoint')
+def getTrainCurve(train_loss, valid_loss, ax, show_min=True):
+    ax.plot(range(1,len(train_loss)+1),train_loss, label='Training')
+    ax.plot(range(1,len(valid_loss)+1),valid_loss,label='Validation')
+    if show_min:
+        # find position of lowest validation loss
+        minposs = valid_loss.index(min(valid_loss))+1 
+        ax.axvline(minposs, linestyle='--', color='r',label='Early Stopping Checkpoint')
     ax.grid(True)
     ax.legend()
     return ax

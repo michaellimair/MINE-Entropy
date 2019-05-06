@@ -37,11 +37,12 @@ class Gaussian():
         def fy(y):
             return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1]) 
 
-        i = [xlogy(fxy(xs[i,j], ys[i,j]),fxy(xs[i,j], ys[i,j]))-xlogy(fx(xs[i,j]),fx(xs[i,j]))-xlogy(fy(ys[i,j]),fy(ys[i,j])) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        i = np.array(i).reshape(xs.shape[0], ys.shape[1])
-        i = i[:-1, :-1]
-        i_min, i_max = -np.abs(i).max(), np.abs(i).max()
-        c = ax.pcolormesh(xs, ys, i, cmap='RdBu', vmin=i_min, vmax=i_max)
+        # i = [xlogy(fxy(xs[i,j], ys[i,j]),fxy(xs[i,j], ys[i,j]))-xlogy(fx(xs[i,j]),fx(xs[i,j]))-xlogy(fy(ys[i,j]),fy(ys[i,j])) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i_ = [np.log(fxy(xs[i,j], ys[i,j])/(fx(xs[i,j])*fy(ys[i,j]))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
+        i_ = i_[:-1, :-1]
+        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
         # set the limits of the plot to the limits of the data
         ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
         return ax, c
@@ -49,7 +50,7 @@ class Gaussian():
 
 
 if __name__ == '__main__':
-    gaus=Gaussian(200, 0, 1, 0.5)
+    gaus=Gaussian(200, 0, 1, 0.99)
     data = gaus.data
     import os
     import matplotlib
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     ax, c = gaus.plot_i(ax, xs, ys)
     fig.colorbar(c, ax=ax)
     ax.set_title("i(X;Y)")
-    figName = os.path.join("experiments", "guas_rho=0.5_i_XY.png")
+    figName = os.path.join("minee/experiments", "guas_rho=0.5_i_XY.png")
     fig.savefig(figName, bbox_inches='tight')
     plt.close()
 

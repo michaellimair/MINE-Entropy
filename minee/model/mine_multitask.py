@@ -200,7 +200,7 @@ class MineMultiTaskNet(nn.Module):
         return x_output, y_output, xy_output
 
 class MineMultiTask():
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True):
+    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True, hidden_size=100):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20
@@ -225,9 +225,9 @@ class MineMultiTask():
             self.y_label = y_label
         self.heatmap_frames = []  # for plotting heatmap animation
         if add_mar:
-            self.mine_net = MineMultiTaskNet(input_size=len(self.cond)+1)
+            self.mine_net = MineMultiTaskNet(input_size=len(self.cond)+1,hidden_size=hidden_size)
         else:
-            self.mine_net = MineEntropy(input_size=len(self.cond)+1)
+            self.mine_net = MineEntropy(input_size=len(self.cond)+1,hidden_size=hidden_size)
         self.mine_net_optim = optim.Adam(self.mine_net.parameters(), lr=self.lr)
         self.earlyStop = earlyStop
         self.iter_snapshot = iter_snapshot
@@ -257,6 +257,11 @@ class MineMultiTask():
         self.ma_efxy = 1. 
         
         #Early Stopping
+        train_mi_lb = []
+        valid_mi_lb = []
+        self.avg_train_mi_lb = []
+        self.avg_valid_mi_lb = []
+
         train_loss = []
         valid_loss = []
         self.avg_train_loss = []
@@ -269,15 +274,19 @@ class MineMultiTask():
             #get train data
             batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
                          sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
-            _, lossTrain = self.update_mine_net(batchTrain, self.mine_net_optim)
+            mi_lbTrain, lossTrain = self.update_mine_net(batchTrain, self.mine_net_optim)
             train_loss.append(lossTrain)
+            train_mi_lb.append(mi_lbTrain)
             
-            _, lossVal = self.forward_pass(val_data)
+            mi_lbVal, lossVal = self.forward_pass(val_data)
             valid_loss.append(lossVal)
+            valid_mi_lb.append(mi_lbVal)
             
             if (i+1)%(self.avg_freq)==0:
                 self.avg_train_loss.append(np.average(train_loss))
                 self.avg_valid_loss.append(np.average(valid_loss))
+                self.avg_train_mi_lb.append(np.average(train_mi_lb))
+                self.avg_valid_mi_lb.append(np.average(valid_mi_lb))
 
                 if self.verbose:
                     print_msg = "[{0}/{1}] train_loss: {2} valid_loss: {3}".format(i, self.iter_num, train_loss, valid_loss)
@@ -292,10 +301,16 @@ class MineMultiTask():
                         break
                 train_loss= []
                 valid_loss = []
+                train_mi_lb = []
+                valid_mi_lb = []
+
             if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
                 mi_lb_, _ = self.forward_pass(val_data)
                 self.savefig(self.X, mi_lb_, suffix="_iter={}".format(self.iter_snapshot[j]))
                 j += 1
+                ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
+                ch = os.path.join(self.prefix, ch)
+                torch.save(self.mine_net.state_dict(), ch)
                 # if self.log:
                 #     x = np.linspace(self.Xmin, self.Xmax, 300)
                 #     y = np.linspace(self.Ymin, self.Ymax, 300)
@@ -315,6 +330,10 @@ class MineMultiTask():
             np.savetxt(os.path.join(self.prefix, "avg_train_loss .txt"), avg_train_loss )
             avg_valid_loss = np.array(self.avg_valid_loss)
             np.savetxt(os.path.join(self.prefix, "avg_valid_loss.txt"), avg_valid_loss)
+            avg_train_mi_lb = np.array(self.avg_train_mi_lb)
+            np.savetxt(os.path.join(self.prefix, "avg_train_mi_lb.txt"), avg_train_mi_lb)
+            avg_valid_mi_lb = np.array(self.avg_valid_mi_lb)
+            np.savetxt(os.path.join(self.prefix, "avg_valid_mi_lb.txt"), avg_valid_mi_lb)
 
         if self.earlyStop:
             ch = os.path.join(self.prefix, "checkpoint.pt")
@@ -352,7 +371,7 @@ class MineMultiTask():
         mine_net_optim.zero_grad()
         autograd.backward(loss)
         mine_net_optim.step()
-        return mi_lb, lossTrain.item()
+        return mi_lb.item(), lossTrain.item()
 
     def mutual_information(self, joint, reference):
         fx, fy, fxy = self.mine_net(joint)
@@ -415,7 +434,7 @@ class MineMultiTask():
 
         #plot training curve
         axCur = ax[0,1]
-        axCur = plot_util.getTrainCurve(self.avg_train_loss , self.avg_valid_loss, axCur)
+        axCur = plot_util.getTrainCurve(self.avg_train_loss , self.avg_valid_loss, axCur, show_min=False)
         axCur.set_title('train curve of total loss')
 
         # Trained Function contour plot
@@ -481,6 +500,12 @@ class MineMultiTask():
         axCur.set_ylabel(self.y_label)
         axCur.legend()
         axCur.set_title('MI of XY')
+
+        #plot mi_lb curve
+        axCur = ax[1,1]
+        axCur = plot_util.getTrainCurve(self.avg_train_mi_lb , self.avg_valid_mi_lb, axCur, show_min=False)
+        axCur.set_title('training curve of mutual information')
+
         figName = os.path.join(self.prefix, "MINE{}".format(suffix))
         fig.savefig(figName, bbox_inches='tight')
         plt.close()

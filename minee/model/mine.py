@@ -95,7 +95,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[]):
+    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], hidden_size=100):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20
@@ -119,7 +119,7 @@ class Mine():
         else:
             self.y_label = y_label
         self.heatmap_frames = []  # for plotting heatmap animation
-        self.mine_net = MineNet(input_size=len(self.cond)+1)
+        self.mine_net = MineNet(input_size=len(self.cond)+1, hidden_size=hidden_size)
         self.mine_net_optim = optim.Adam(self.mine_net.parameters(), lr=self.lr)
         self.earlyStop = earlyStop
         self.iter_snapshot = iter_snapshot
@@ -190,6 +190,9 @@ class Mine():
                 mi_lb_ = self.forward_pass(val_data)
                 self.savefig(self.X, mi_lb_.item(), suffix="_iter={}".format(self.iter_snapshot[j]))
                 j += 1
+                ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
+                ch = os.path.join(self.prefix, ch)
+                torch.save(self.mine_net.state_dict(), ch)
                 # if self.log:
                     # x = np.linspace(self.Xmin, self.Xmax, 300)
                     # y = np.linspace(self.Ymin, self.Ymax, 300)
@@ -298,7 +301,8 @@ class Mine():
         ax[0].legend()
 
         #plot training curve
-        ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, self.avg_valid_mi_lb, ax[1])
+        ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, self.avg_valid_mi_lb, ax[1], show_min=self.earlyStop)
+        ax[1].set_title('train curve of total loss')
 
         # Trained Function contour plot
         Xmin = min(X[:,0])
