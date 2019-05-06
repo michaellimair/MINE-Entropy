@@ -189,10 +189,10 @@ class Mine():
             if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
                 mi_lb_ = self.forward_pass(val_data)
                 self.savefig(self.X, mi_lb_.item(), suffix="_iter={}".format(self.iter_snapshot[j]))
-                j += 1
                 ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
                 ch = os.path.join(self.prefix, ch)
                 torch.save(self.mine_net.state_dict(), ch)
+                j += 1
                 # if self.log:
                     # x = np.linspace(self.Xmin, self.Xmax, 300)
                     # y = np.linspace(self.Ymin, self.Ymax, 300)

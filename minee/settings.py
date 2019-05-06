@@ -30,6 +30,7 @@ patience=int(250)
 iter_num=int(1e+4)
 lr = 2e-3
 moving_average_rate = 0.01
+hidden_size = 100
 
 
 time_now = datetime.now()
@@ -141,6 +142,23 @@ model = {
     #     ), 
     #     'color': 'pink'
     # },
+    'MINE_direct_hidden_X_2': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size, 
+            patience=patience, 
+            iter_num=iter_num, 
+            log_freq=int(100), 
+            avg_freq=int(10), 
+            ma_rate=moving_average_rate, 
+            verbose=False,
+            log=True,
+            sample_mode='marginal',
+            earlyStop=False,
+            hidden_size=hidden_size*2
+        ), 
+        'color': 'magenta'
+    },
     'MINE_multi_task': {
         'model': MineMultiTask(
             lr=lr, 
@@ -154,7 +172,8 @@ model = {
             log=True,
             sample_mode='unif',
             earlyStop=False,
-            add_mar=True
+            add_mar=True,
+            hidden_size=hidden_size
         ), 
         'color': 'grey'
     },
@@ -171,7 +190,8 @@ model = {
             log=True,
             sample_mode='unif',
             earlyStop=False,
-            add_mar=False
+            add_mar=False,
+            hidden_size=hidden_size
         ), 
         'color': 'purple'
     },
@@ -187,7 +207,8 @@ model = {
             verbose=False,
             log=True,
             sample_mode='marginal',
-            earlyStop=False
+            earlyStop=False,
+            hidden_size=hidden_size
         ), 
         'color': 'orange'
     },
@@ -215,9 +236,9 @@ model = {
 
 # n_samples = 6400
 n_samples = batch_size * 20
-rhos = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 0.99, 0.999 ]
+rhos = [0, 0.2, 0.6, 0.8, 0.9, 0.999 ]
 # rhos = [0.999]
-widths = list(range(2, 12, 2))
+widths = list(range(2, 12, 4))
 
 
 data = {

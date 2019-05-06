@@ -167,10 +167,10 @@ def run_experiment():
     plot(experiment_path)
 
 def run_experiment_batch_pop_ir():
-    batch = [ int(32), int(128), int(512)]
+    batch = [int(2), int(8), int(32), int(128)]
     # batch = [int(2), int(8), int(256), int(512)]
-    pop = [ int(8192), int(512),int(2048)]
-    iterNum_ = int(625000)
+    pop = [int(512), int(8192), int(2048)]
+    iterNum_ = int(312500)
     snapshot = [int(iterNum_/1028), int(iterNum_/512), int(iterNum_/256), int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
     # snapshot = [int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
     for pop_ in pop:
