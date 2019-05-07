@@ -279,6 +279,9 @@ class Mine():
 
         if self.log:
             self.savefig(X, mi_lb)
+            ch = "checkpoint_iter={}.pt".format(self.iter_num)
+            ch = os.path.join(self.prefix, ch)
+            torch.save(self.mine_net.state_dict(), ch)
         if self.sample_mode == 'unif':
             if 0 == len(self.cond):
                 X_max, X_min = X[:,self.resp].max(axis=0), X[:,self.resp].min(axis=0)

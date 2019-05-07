@@ -417,6 +417,9 @@ class MineMultiTask():
 
         if self.log:
             self.savefig(X, mi_lb)
+            ch = "checkpoint_iter={}.pt".format(self.iter_num)
+            ch = os.path.join(self.prefix, ch)
+            torch.save(self.mine_net.state_dict(), ch)
         return mi_lb
 
     def savefig(self, X, ml_lb_estimate, suffix=""):
