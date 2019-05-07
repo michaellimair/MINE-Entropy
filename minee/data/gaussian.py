@@ -23,30 +23,30 @@ class Gaussian():
 
     @property
     def ground_truth(self):
-        # return -0.5*np.log(1-self.rho*self.rho)
-        covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
-        def fxy(x,y):
-            X = np.array([x, y])
-            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose() )
-            return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat))) 
+        return -0.5*np.log(1-self.rho**2)
+        # covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
+        # def fxy(x,y):
+        #     X = np.array([x, y])
+        #     temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose() )
+        #     return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat))) 
 
-        def fx(x):
-            return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0]) 
+        # def fx(x):
+        #     return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0]) 
 
-        def fy(y):
-            return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])
+        # def fy(y):
+        #     return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])
 
 
-        lim = np.inf 
-        hx = quad(lambda x: -xlogy(fx(x),fx(x)), -lim, lim)
-        isReliable = hx[1]
-        # print(isReliable)
-        hy = quad(lambda y: -xlogy(fy(y),fy(y)), -lim, lim)
-        isReliable = np.maximum(isReliable,hy[1])
-        # print(isReliable)
-        hxy = dblquad(lambda x, y: -xlogy(fxy(x,y),fxy(x,y)), -lim, lim, lambda x:-lim, lambda x:lim)
-        isReliable = np.maximum(isReliable,hxy[1])
-        return hx[0] + hy[0] - hxy[0]
+        # lim = np.inf 
+        # hx = quad(lambda x: -xlogy(fx(x),fx(x)), -lim, lim)
+        # isReliable = hx[1]
+        # # print(isReliable)
+        # hy = quad(lambda y: -xlogy(fy(y),fy(y)), -lim, lim)
+        # isReliable = np.maximum(isReliable,hy[1])
+        # # print(isReliable)
+        # hxy = dblquad(lambda x, y: -xlogy(fxy(x,y),fxy(x,y)), -lim, lim, lambda x:-lim, lambda x:lim)
+        # isReliable = np.maximum(isReliable,hxy[1])
+        # return hx[0] + hy[0] - hxy[0]
 
     def plot_i(self, ax, xs, ys):
         covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
