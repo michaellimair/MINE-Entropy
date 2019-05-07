@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
-class BiModal():
+class MixedGaussian():
     # Mixture of two bivariate gaussians
     #
     # data(mix,Mode,Rho,N) generates N samples with
@@ -96,11 +96,12 @@ class BiModal():
             return mix*np.exp(-(y-mu[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
                     + (1-mix)*np.exp(-(y+mu[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
 
-        i = [np.log(fxy(xs[i,j], ys[i,j])/(fx(xs[i,j])*fy(ys[i,j]))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        i = np.array(i).reshape(xs.shape[0], ys.shape[1])
-        i = i[:-1, :-1]
-        i_min, i_max = -np.abs(i).max(), np.abs(i).max()
-        c = ax.pcolormesh(xs, ys, i, cmap='RdBu', vmin=i_min, vmax=i_max)
+        i_ = [np.log(fxy(xs[i,j], ys[i,j])/(fx(xs[i,j])*fy(ys[i,j]))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        # i = [xlogy(fxy(xs[i,j], ys[i,j]),fxy(xs[i,j], ys[i,j]))-xlogy(fx(xs[i,j]),fx(xs[i,j]))-xlogy(fy(ys[i,j]),fy(ys[i,j])) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
+        i_ = i_[:-1, :-1]
+        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
         # set the limits of the plot to the limits of the data
         ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
         return ax, c
@@ -216,7 +217,7 @@ if __name__ == '__main__':
     # plt.show(block=False)
     # input("press enter to close")
     # plt.close(fig)
-    bimodel=BiModal()
+    bimodel=MixedGaussian()
     data = bimodel.data
     import os
     import matplotlib

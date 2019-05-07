@@ -9,16 +9,16 @@ from ..util import plot_util
 from .mine import Mine, MineNet, sample_batch
 
 class Mine_ent(Mine):
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True):
+    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, earlyStop=True):
         """
         can only support bivariate mutual information now
         """
         self.log_ent = log
-        super().__init__(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, resp, cond, log=False, sample_mode='unif')
+        super().__init__(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, resp, cond, log=False, sample_mode='unif', earlyStop=earlyStop)
 
-        self.Mine_resp = Mine(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, resp, [], log=False, sample_mode='unif')
+        self.Mine_resp = Mine(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, resp, [], log=False, sample_mode='unif', earlyStop=earlyStop)
 
-        self.Mine_cond = Mine(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, cond[0], [], log=False, sample_mode='unif')
+        self.Mine_cond = Mine(lr, batch_size, patience, iter_num, log_freq, avg_freq, ma_rate, verbose, cond[0], [], log=False, sample_mode='unif', earlyStop=earlyStop)
 
     def predict(self, X):
         """[summary]
