@@ -185,20 +185,12 @@ def run_experiment_batch_pop_ir(pop_, bat_):
     experiment_name = "gaus_pop={}_batch={}".format(pop_, bat_)
     experiment_path = os.path.join(settings.output_path, experiment_name)
 
-    settings.model['MINE_direct']['model'].batch_size = bat_
-    settings.model['MINE_entropy']['model'].batch_size = bat_
-    settings.model['MINE_multi_task']['model'].batch_size = bat_
-    settings.model['MINE_direct_hidden_X_2']['model'].batch_size = bat_
+    model_names = ['MINE_direct', 'MINE_entropy', 'MINE_multi_task', 'MINE_direct_hidden_X_2']
 
-    settings.model['MINE_direct']['model'].iter_num = iterNum_
-    settings.model['MINE_entropy']['model'].iter_num = iterNum_
-    settings.model['MINE_multi_task']['model'].iter_num = iterNum_
-    settings.model['MINE_direct_hidden_X_2']['model'].iter_num = iterNum_
-
-    settings.model['MINE_direct']['model'].iter_snapshot = snapshot
-    settings.model['MINE_entropy']['model'].iter_snapshot = snapshot
-    settings.model['MINE_multi_task']['model'].iter_snapshot = snapshot
-    settings.model['MINE_direct_hidden_X_2']['model'].iter_snapshot = snapshot
+    for model_name in model_names:
+        settings.model[model_name]['model'].batch_size = bat_
+        settings.model[model_name]['model'].iter_num = iterNum_
+        settings.model[model_name]['model'].iter_snapshot = snapshot
     # settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
     #                                                 {
     #                                                     'n_samples': pop_, 
