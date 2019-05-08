@@ -1,6 +1,5 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ccha23/MINE-Entropy/master?urlpath=lab/tree/load%20MINE_net-cchan.ipynb)]
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ccha23/MINE-Entropy/master?urlpath=lab/tree/load%20MINE_net-cchan.ipynb)
 
-gameclustering_in
 # MMI estimation
 
 
