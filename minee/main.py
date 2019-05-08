@@ -9,7 +9,7 @@ import os
 from .utils import save_train_curve
 # from model import Mine, LinearReg, Kraskov
 from joblib import Parallel, delayed
-from . import settings
+from . import settings_v2 as settings
 from tqdm import tqdm
 
 def saveResultsFig(results_dict, experiment_path=""):
@@ -65,24 +65,24 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     ground_truth = data_model.ground_truth
 
     prefix_name_loop = os.path.join(experiment_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
-    if not os.path.exists(prefix_name_loop):
-        os.makedirs(prefix_name_loop)
+    # if not os.path.exists(prefix_name_loop):
+    #     os.makedirs(prefix_name_loop)
         
-    #Plot Ground Truth MI
-    fig, ax = plt.subplots(figsize=(15, 15))
-    Xmax = max(data[:,0])
-    Xmin = min(data[:,0])
-    Ymax = max(data[:,1])
-    Ymin = min(data[:,1])
-    x = np.linspace(Xmin, Xmax, 300)
-    y = np.linspace(Ymin, Ymax, 300)
-    xs, ys = np.meshgrid(x,y)
-    ax, c = data_model.plot_i(ax, xs, ys)
-    fig.colorbar(c, ax=ax)
-    ax.set_title("i(X;Y)")
-    figName = os.path.join(prefix_name_loop, "i_XY")
-    fig.savefig(figName, bbox_inches='tight')
-    plt.close()
+    # #Plot Ground Truth MI
+    # fig, ax = plt.subplots(figsize=(15, 15))
+    # Xmax = max(data[:,0])
+    # Xmin = min(data[:,0])
+    # Ymax = max(data[:,1])
+    # Ymin = min(data[:,1])
+    # x = np.linspace(Xmin, Xmax, 300)
+    # y = np.linspace(Ymin, Ymax, 300)
+    # xs, ys = np.meshgrid(x,y)
+    # ax, c = data_model.plot_i(ax, xs, ys)
+    # fig.colorbar(c, ax=ax)
+    # ax.set_title("i(X;Y)")
+    # figName = os.path.join(prefix_name_loop, "i_XY")
+    # fig.savefig(figName, bbox_inches='tight')
+    # plt.close()
 
 
     # Fit Algorithm
@@ -127,6 +127,14 @@ def plot(experiment_path):
         for data_name in settings.data.keys():
             results[model_name][data_name] = []
             results['Ground Truth'][data_name] = []
+
+    for data_name, data in settings.data.items():
+        for kwargs in data['kwargs']:
+            varying_param_name = data['varying_param_name']
+            varying_param_value = kwargs[varying_param_name]
+            prefix_name_loop = os.path.join(experiment_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
+            if not os.path.exists(prefix_name_loop):
+                os.makedirs(prefix_name_loop)
     
     # # Main Loop
     r = Parallel(n_jobs=settings.cpu)(delayed(get_estimation)(model_name, 
@@ -167,9 +175,9 @@ def run_experiment():
     plot(experiment_path)
 
 def run_experiment_batch_pop_ir():
-    batch = [int(2), int(8), int(32), int(128)]
+    batch = [int(128), int(2), int(8), int(32)]
     # batch = [int(2), int(8), int(256), int(512)]
-    pop = [int(512), int(8192), int(2048)]
+    pop = [int(2048), int(512), int(8192)]
     iterNum_ = int(312500)
     snapshot = [int(iterNum_/1028), int(iterNum_/512), int(iterNum_/256), int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
     # snapshot = [int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
@@ -177,15 +185,21 @@ def run_experiment_batch_pop_ir():
         for bat_ in batch:
             experiment_name = "pop={}_batch={}".format(pop_, bat_)
             experiment_path = os.path.join(settings.output_path, experiment_name)
+
             settings.model['MINE_direct']['model'].batch_size = bat_
             settings.model['MINE_entropy']['model'].batch_size = bat_
             settings.model['MINE_multi_task']['model'].batch_size = bat_
+            settings.model['MINE_direct_hidden_X_2']['model'].batch_size = bat_
+
             settings.model['MINE_direct']['model'].iter_num = iterNum_
             settings.model['MINE_entropy']['model'].iter_num = iterNum_
             settings.model['MINE_multi_task']['model'].iter_num = iterNum_
+            settings.model['MINE_direct_hidden_X_2']['model'].iter_num = iterNum_
+
             settings.model['MINE_direct']['model'].iter_snapshot = snapshot
             settings.model['MINE_entropy']['model'].iter_snapshot = snapshot
             settings.model['MINE_multi_task']['model'].iter_snapshot = snapshot
+            settings.model['MINE_direct_hidden_X_2']['model'].iter_snapshot = snapshot
             settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
                                                             {
                                                                 'n_samples': pop_, 

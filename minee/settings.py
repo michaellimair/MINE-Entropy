@@ -23,8 +23,7 @@ import math
 import os
 from datetime import datetime
 
-cpu = 70
-
+cpu = 1
 batch_size=64
 patience=int(250)
 iter_num=int(1e+4)
@@ -38,20 +37,20 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-     'Linear Regression': {  # model name, for plotting the legend
-         'model': LinearReg(  # initialize the object
-             cvFold=3
-         ), 
-         'color': 'blue'  # for plotting
-     }, 
-     'Kraskov': {
-         'model': Kraskov(
-             discrete_features='auto', 
-             n_neighbors=3, 
-             random_state=None
-         ), 
-         'color': 'green'
-     }, 
+    #  'Linear Regression': {  # model name, for plotting the legend
+    #      'model': LinearReg(  # initialize the object
+    #          cvFold=3
+    #      ), 
+    #      'color': 'blue'  # for plotting
+    #  }, 
+    #  'Kraskov': {
+    #      'model': Kraskov(
+    #          discrete_features='auto', 
+    #          n_neighbors=3, 
+    #          random_state=None
+    #      ), 
+    #      'color': 'green'
+    #  }, 
     # 'LOO Shannon KDE': {
     #     'model': ShanKDE(
     #         numPart='loo', 
@@ -236,26 +235,26 @@ model = {
 
 # n_samples = 6400
 n_samples = batch_size * 20
-rhos = [0, 0.2, 0.6, 0.8, 0.9, 0.999 ]
+rhos = [ 0.9, 0.9999, 1-1e-8, 1-1e-12 ]
 # rhos = [0.999]
 widths = list(range(2, 12, 4))
 
 
 data = {
-    'Mixed Gaussian': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'n_samples':n_samples, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
+    # 'Mixed Gaussian': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'n_samples':n_samples, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
     'Gaussian': {
         'model': Gaussian, 
         'kwargs': [
@@ -269,19 +268,19 @@ data = {
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    'Mixed Uniform': {
-        'model': MixedUniform, 
-        'kwargs': [
-            {
-                'n_samples':n_samples, 
-                'width_a': width, 
-                'width_b': width, 
-                'mix': 0.5
-            } for width in widths
-        ], 
-        'varying_param_name': 'width_a', 
-        'x_axis_name': 'width'
-    }, 
+    # 'Mixed Uniform': {
+    #     'model': MixedUniform, 
+    #     'kwargs': [
+    #         {
+    #             'n_samples':n_samples, 
+    #             'width_a': width, 
+    #             'width_b': width, 
+    #             'mix': 0.5
+    #         } for width in widths
+    #     ], 
+    #     'varying_param_name': 'width_a', 
+    #     'x_axis_name': 'width'
+    # }, 
     # {
     #     'name': 'Examples', 
     #     'model': XX(
