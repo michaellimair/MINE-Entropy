@@ -5,7 +5,7 @@ __pycache__/
 *.pyc
 .vscode
 experiments
-minee/experiment
+minee/experiments
 *.log
 *.cmake
 *.check_cache
