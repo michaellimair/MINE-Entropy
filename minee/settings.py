@@ -26,10 +26,14 @@ from datetime import datetime
 cpu = 1
 batch_size=64
 patience=int(250)
-iter_num=int(1e+4)
 lr = 2e-3
 moving_average_rate = 0.01
 hidden_size = 100
+batch = [int(2), int(8), int(32), int(128)]
+pop = [int(512), int(2048), int(8192)]
+
+iter_num = int(312500)
+snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
 
 
 time_now = datetime.now()

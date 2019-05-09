@@ -306,7 +306,7 @@ class MineMultiTask():
 
             if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
                 mi_lb_, _ = self.forward_pass(val_data)
-                self.savefig(self.X, mi_lb_, suffix="_iter={}".format(self.iter_snapshot[j]))
+                self.savefig(mi_lb_, suffix="_iter={}".format(self.iter_snapshot[j]))
                 ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
                 ch = os.path.join(self.prefix, ch)
                 torch.save(self.mine_net.state_dict(), ch)
@@ -400,7 +400,7 @@ class MineMultiTask():
 
         return mi_lb.item(), loss.item()
 
-    def predict(self, X):
+    def predict(self, X_train, X_test):
         """[summary]
         
         Arguments:
@@ -409,27 +409,29 @@ class MineMultiTask():
         Return:
             mutual information estimate
         """
-        self.X = X
-        self.X_train, self.X_test = train_test_split(X, test_size=0.35, random_state=0)
+        self.X_train, self.X_test = X_train, X_test
+        X_train = np.array(self.X_train)
+        np.savetxt(os.path.join(self.prefix, "X_train.txt"), X_train)
+        X_test = np.array(self.X_test)
+        np.savetxt(os.path.join(self.prefix, "X_test.txt"), X_test)
         self.fit(self.X_train, self.X_test)
     
         mi_lb, _ = self.forward_pass(self.X_test)
 
         if self.log:
-            self.savefig(X, mi_lb)
+            self.savefig(mi_lb)
             ch = "checkpoint_iter={}.pt".format(self.iter_num)
             ch = os.path.join(self.prefix, ch)
             torch.save(self.mine_net.state_dict(), ch)
         return mi_lb
 
-    def savefig(self, X, ml_lb_estimate, suffix=""):
+    def savefig(self, ml_lb_estimate, suffix=""):
         if len(self.cond) > 1:
             raise ValueError("Only support 2-dim or 1-dim")
         # fig, ax = plt.subplots(3,4, figsize=(100, 45))
         fig, ax = plt.subplots(2,4, figsize=(90, 30))
         #plot Data
         axCur = ax[0,0]
-        # axCur.scatter(X[:,self.resp], X[:,self.cond], color='red', marker='o')
         axCur.scatter(self.X_train[:,self.resp], self.X_train[:,self.cond], color='red', marker='o', label='train')
         axCur.scatter(self.X_test[:,self.resp], self.X_test[:,self.cond], color='green', marker='x', label='test')
         axCur.legend()
@@ -441,10 +443,10 @@ class MineMultiTask():
         axCur.set_title('train curve of total loss')
 
         # Trained Function contour plot
-        Xmin = min(X[:,0])
-        Xmax = max(X[:,0])
-        Ymin = min(X[:,1])
-        Ymax = max(X[:,1])
+        Xmin = min(self.X_train[:,0])
+        Xmax = max(self.X_train[:,0])
+        Ymin = min(self.X_train[:,1])
+        Ymax = max(self.X_train[:,1])
         x = np.linspace(Xmin, Xmax, 300)
         y = np.linspace(Ymin, Ymax, 300)
         xs, ys = np.meshgrid(x,y)
@@ -497,8 +499,11 @@ class MineMultiTask():
 
         # Plot result with ground truth
         axCur = ax[1,0]
+        ml_lb_train, _ = self.forward_pass(self.X_train)
         axCur.scatter(0, self.ground_truth, edgecolors='red', facecolors='none', label='Ground Truth')
-        axCur.scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label="MINE_{0}".format(self.model_name))
+        axCur.scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label="{}_Test".format(self.model_name))
+        axCur.scatter(0, ml_lb_train, edgecolors='blue', facecolors='none', label="{}_Train".format(self.model_name))
+        # axCur.scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label="MINE_{0}".format(self.model_name))
         axCur.set_xlabel(self.paramName)
         axCur.set_ylabel(self.y_label)
         axCur.legend()

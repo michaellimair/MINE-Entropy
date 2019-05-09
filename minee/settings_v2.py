@@ -23,13 +23,26 @@ import math
 import os
 from datetime import datetime
 
-cpu = 70
+cpu = 90
 batch_size=64
 patience=int(250)
 iter_num=int(1e+4)
 lr = 2e-3
 moving_average_rate = 0.01
 hidden_size = 100
+# batch = [int(2), int(8), int(32), int(128)]
+# pop = [int(512), int(2048), int(8192)]
+pop_batch = [
+    (32, 2), (32, 8), (32, 32), 
+    (128, 2), (128, 8), (128, 32), (128, 128), 
+    (512, 2), (512, 8), (512, 32), (512, 128), (512, 512), 
+    (2048, 2), (2048, 8), (2048, 32), (2048, 128), (2048, 512), (2048, 2048), 
+    (8192, 2), (8192, 8), (8192, 32), (8192, 128), (8192, 512), (8192, 2048), (8192, 8192)
+    ]
+
+iter_num = int(312500)
+# snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+snapshot = [i for i in range(0, iter_num, 100)]
 
 
 time_now = datetime.now()
@@ -37,110 +50,6 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    #  'Linear Regression': {  # model name, for plotting the legend
-    #      'model': LinearReg(  # initialize the object
-    #          cvFold=3
-    #      ), 
-    #      'color': 'blue'  # for plotting
-    #  }, 
-    #  'Kraskov': {
-    #      'model': Kraskov(
-    #          discrete_features='auto', 
-    #          n_neighbors=3, 
-    #          random_state=None
-    #      ), 
-    #      'color': 'green'
-    #  }, 
-    # 'LOO Shannon KDE': {
-    #     'model': ShanKDE(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'magenta'
-    # },
-    # 'LOO hellingerDiv': {
-    #     'model': hellingerDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'cyan'
-    # }, 
-    # 'LOO tsallisDiv': {
-    #     'model': tsallisDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'yellow'
-    # }, 
-    # 'LOO chiSqDiv': {
-    #     'model': chiSqDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'black'
-    # }, 
-    # 'LOO renyiDiv': {
-    #     'model': renyiDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'green'
-    # }, 
-    # 'LOO klDiv': {
-    #     'model': klDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'orange'
-    # }, 
-    # 'LOO condShanEnt': {
-    #     'model': condShanEnt(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'pink'
-    # }, 
-    # 'Cart Reg': {
-    #     'model': cartReg(
-    #         cvFold=3
-    #     ), 
-    #     'color': 'pink'
-    # },
     'MINE_direct_hidden_X_2': {
         'model': Mine(
             lr=lr, 
@@ -211,26 +120,6 @@ model = {
         ), 
         'color': 'orange'
     },
-    # 'MINE_entropy': {
-    #     'model': Mine_ent(
-    #         lr=lr,  
-    #         batch_size=batch_size, 
-    #         patience=patience,
-    #         iter_num=iter_num, 
-    #         log_freq=int(100), 
-    #         avg_freq=int(10), 
-    #         ma_rate=moving_average_rate, 
-    #         verbose=False,
-    #         earlyStop=False
-    #     ), 
-    #     'color': 'purple'
-    # },
-    # 'Jackknife': {
-    #     'model': Jackknife(
-    #         n_sim=5
-    #     ),
-    #     'color': 'brown'
-    # }
 }
 
 # n_samples = 6400

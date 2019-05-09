@@ -55,45 +55,34 @@ def saveResultsFig(results_dict, experiment_path=""):
     fig.savefig(figName, bbox_inches='tight')
     plt.close()
 
-def get_estimation(model_name, model, data_model, data_name, varying_param_name, varying_param_value, experiment_path):
+def get_estimation(model_name, model, data_model, data_name, varying_param_name, varying_param_value, experiment_path, pop, batch):
     """
     Returns: mi estimate (float)
     """
 
     # results = dict()
-    data = data_model.data
+    data_model.n_samples = pop
+
+    X_train = data_model.data
+    X_test = data_model.data
     ground_truth = data_model.ground_truth
 
-    prefix_name_loop = os.path.join(experiment_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
-    # if not os.path.exists(prefix_name_loop):
-    #     os.makedirs(prefix_name_loop)
-        
-    # #Plot Ground Truth MI
-    # fig, ax = plt.subplots(figsize=(15, 15))
-    # Xmax = max(data[:,0])
-    # Xmin = min(data[:,0])
-    # Ymax = max(data[:,1])
-    # Ymin = min(data[:,1])
-    # x = np.linspace(Xmin, Xmax, 300)
-    # y = np.linspace(Ymin, Ymax, 300)
-    # xs, ys = np.meshgrid(x,y)
-    # ax, c = data_model.plot_i(ax, xs, ys)
-    # fig.colorbar(c, ax=ax)
-    # ax.set_title("i(X;Y)")
-    # figName = os.path.join(prefix_name_loop, "i_XY")
-    # fig.savefig(figName, bbox_inches='tight')
-    # plt.close()
+    prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}/{}_{}={}/".format(pop, batch, data_name, varying_param_name, varying_param_value))
+    if not os.path.exists(prefix_name_loop):
+        os.makedirs(prefix_name_loop)
 
 
     # Fit Algorithm
     # For plotting extra figure inside the training
+    model['model'].batch_size = batch
     model['model'].model_name = model_name
     model['model'].prefix = os.path.join(prefix_name_loop, model_name)
-    os.makedirs(model['model'].prefix)
+    if not os.path.exists(model['model'].prefix):
+        os.makedirs(model['model'].prefix)
     model['model'].paramName = varying_param_name
     model['model'].paramValue = varying_param_value
     model['model'].ground_truth = ground_truth
-    mi_estimation = model['model'].predict(data)
+    mi_estimation = model['model'].predict(X_train, X_test)
 
     # Save Results
     # results[model_name] = mi_estimation
@@ -128,13 +117,13 @@ def plot(experiment_path):
             results[model_name][data_name] = []
             results['Ground Truth'][data_name] = []
 
-    for data_name, data in settings.data.items():
-        for kwargs in data['kwargs']:
-            varying_param_name = data['varying_param_name']
-            varying_param_value = kwargs[varying_param_name]
-            prefix_name_loop = os.path.join(experiment_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
-            if not os.path.exists(prefix_name_loop):
-                os.makedirs(prefix_name_loop)
+    # for data_name, data in settings.data.items():
+    #     for kwargs in data['kwargs']:
+    #         varying_param_name = data['varying_param_name']
+    #         varying_param_value = kwargs[varying_param_name]
+    #         prefix_name_loop = os.path.join(experiment_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
+    #         if not os.path.exists(prefix_name_loop):
+    #             os.makedirs(prefix_name_loop)
     
     # # Main Loop
     r = Parallel(n_jobs=settings.cpu)(delayed(get_estimation)(model_name, 
@@ -143,10 +132,14 @@ def plot(experiment_path):
                                                               data_name, 
                                                               data['varying_param_name'], 
                                                               kwargs[data['varying_param_name']], 
-                                                              experiment_path) 
+                                                              experiment_path,
+                                                              pop_,
+                                                              batch_) 
+                                                                    for pop_, batch_ in tqdm(settings.pop_batch)
                                                                     for model_name, model in tqdm(settings.model.items())
                                                                     for data_name, data in tqdm(settings.data.items())
-                                                                    for kwargs in tqdm(data['kwargs']))
+                                                                    for kwargs in tqdm(data['kwargs'])
+                                                                    )
     for (mi_estimate, ground_truth, model_name, data_name, varying_param_value) in r:
         results[model_name][data_name].append((varying_param_value, mi_estimate))
         results['Ground Truth'][data_name].append((varying_param_value, ground_truth))
@@ -175,11 +168,9 @@ def run_experiment():
     plot(experiment_path)
 
 def run_experiment_batch_pop_ir():
-    batch = [int(128), int(2), int(8), int(32)]
+    batch = settings.batch
     # batch = [int(2), int(8), int(256), int(512)]
-    pop = [int(2048), int(512), int(8192)]
-    iterNum_ = int(312500)
-    snapshot = [int(iterNum_/1028), int(iterNum_/512), int(iterNum_/256), int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
+    pop = settings.pop
     # snapshot = [int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
     for pop_ in pop:
         for bat_ in batch:
@@ -190,16 +181,7 @@ def run_experiment_batch_pop_ir():
             settings.model['MINE_entropy']['model'].batch_size = bat_
             settings.model['MINE_multi_task']['model'].batch_size = bat_
             settings.model['MINE_direct_hidden_X_2']['model'].batch_size = bat_
-
-            settings.model['MINE_direct']['model'].iter_num = iterNum_
-            settings.model['MINE_entropy']['model'].iter_num = iterNum_
-            settings.model['MINE_multi_task']['model'].iter_num = iterNum_
-            settings.model['MINE_direct_hidden_X_2']['model'].iter_num = iterNum_
-
-            settings.model['MINE_direct']['model'].iter_snapshot = snapshot
-            settings.model['MINE_entropy']['model'].iter_snapshot = snapshot
-            settings.model['MINE_multi_task']['model'].iter_snapshot = snapshot
-            settings.model['MINE_direct_hidden_X_2']['model'].iter_snapshot = snapshot
+            
             settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
                                                             {
                                                                 'n_samples': pop_, 
@@ -242,5 +224,5 @@ def run_experiment_batch_pop_ir():
             plot(experiment_path)
 
 if __name__ == "__main__":
-    # run_experiment()
-    run_experiment_batch_pop_ir()
+    run_experiment()
+    # run_experiment_batch_pop_ir()

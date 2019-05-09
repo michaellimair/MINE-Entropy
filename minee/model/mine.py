@@ -158,7 +158,7 @@ class Mine():
             #get train data
             batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
                          sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
-            mi_lb, lossTrain = self.update_mine_net(batchTrain, self.mine_net_optim)
+            mi_lb, _ = self.update_mine_net(batchTrain, self.mine_net_optim)
             result.append(mi_lb.detach().cpu().numpy())
             train_mi_lb.append(mi_lb.item())
             if self.verbose and (i+1)%(self.log_freq)==0:
@@ -188,7 +188,7 @@ class Mine():
                         break
             if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
                 mi_lb_ = self.forward_pass(val_data)
-                self.savefig(self.X, mi_lb_.item(), suffix="_iter={}".format(self.iter_snapshot[j]))
+                self.savefig(mi_lb_.item(), suffix="_iter={}".format(self.iter_snapshot[j]))
                 ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
                 ch = os.path.join(self.prefix, ch)
                 torch.save(self.mine_net.state_dict(), ch)
@@ -259,10 +259,10 @@ class Mine():
         marginal = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode=self.sample_mode)
         joint = torch.autograd.Variable(torch.FloatTensor(joint))
         marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
-        mi_lb , t, et = self.mutual_information(joint, marginal)
+        mi_lb , _, _ = self.mutual_information(joint, marginal)
         return mi_lb
 
-    def predict(self, X):
+    def predict(self, X_train, X_test):
         """[summary]
         
         Arguments:
@@ -271,34 +271,36 @@ class Mine():
         Return:
             mutual information estimate
         """
-        self.X = X
-        self.X_train, self.X_test = train_test_split(X, test_size=0.35, random_state=0)
+        self.X_train, self.X_test = X_train, X_test
+        X_train = np.array(self.X_train)
+        np.savetxt(os.path.join(self.prefix, "X_train.txt"), X_train)
+        X_test = np.array(self.X_test)
+        np.savetxt(os.path.join(self.prefix, "X_test.txt"), X_test)
         self.fit(self.X_train, self.X_test)
     
         mi_lb = self.forward_pass(self.X_test).item()
 
         if self.log:
-            self.savefig(X, mi_lb)
+            self.savefig(mi_lb)
             ch = "checkpoint_iter={}.pt".format(self.iter_num)
             ch = os.path.join(self.prefix, ch)
             torch.save(self.mine_net.state_dict(), ch)
         if self.sample_mode == 'unif':
             if 0 == len(self.cond):
-                X_max, X_min = X[:,self.resp].max(axis=0), X[:,self.resp].min(axis=0)
+                X_max, X_min = X_train[:,self.resp].max(axis=0), X_train[:,self.resp].min(axis=0)
                 cross = np.log(X_max-X_min)
             else:
-                X_max, X_min = X.max(axis=0), X.min(axis=0)
+                X_max, X_min = X_train.max(axis=0), X_train.min(axis=0)
                 cross = sum(np.log(X_max-X_min))
             return cross - mi_lb
         return mi_lb
 
 
-    def savefig(self, X, ml_lb_estimate, suffix=""):
+    def savefig(self, ml_lb_estimate, suffix=""):
         if len(self.cond) > 1:
             raise ValueError("Only support 2-dim or 1-dim")
         fig, ax = plt.subplots(1,4, figsize=(90, 15))
         #plot Data
-        # ax[0].scatter(X[:,self.resp], X[:,self.cond], color='red', marker='o')
         ax[0].scatter(self.X_train[:,self.resp], self.X_train[:,self.cond], color='red', marker='o', label='train')
         ax[0].scatter(self.X_test[:,self.resp], self.X_test[:,self.cond], color='green', marker='x', label='test')
         ax[0].legend()
@@ -308,10 +310,10 @@ class Mine():
         ax[1].set_title('train curve of total loss')
 
         # Trained Function contour plot
-        Xmin = min(X[:,0])
-        Xmax = max(X[:,0])
-        Ymin = min(X[:,1])
-        Ymax = max(X[:,1])
+        Xmin = min(self.X_train[:,0])
+        Xmax = max(self.X_train[:,0])
+        Ymin = min(self.X_train[:,1])
+        Ymax = max(self.X_train[:,1])
         x = np.linspace(Xmin, Xmax, 300)
         y = np.linspace(Ymin, Ymax, 300)
         xs, ys = np.meshgrid(x,y)
@@ -323,8 +325,10 @@ class Mine():
         ax[2].set_title('heatmap')
 
         # Plot result with ground truth
+        ml_lb_train = self.forward_pass(self.X_train)
         ax[3].scatter(0, self.ground_truth, edgecolors='red', facecolors='none', label='Ground Truth')
-        ax[3].scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label=self.model_name)
+        ax[3].scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label="{}_Test".format(self.model_name))
+        ax[3].scatter(0, ml_lb_train, edgecolors='blue', facecolors='none', label="{}_Train".format(self.model_name))
         ax[3].set_xlabel(self.paramName)
         ax[3].set_ylabel(self.y_label)
         ax[3].legend()
