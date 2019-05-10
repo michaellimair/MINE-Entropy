@@ -67,18 +67,26 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     X_test = data_model.data
     ground_truth = data_model.ground_truth
 
-    prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}/{}_{}={}/".format(pop, batch, data_name, varying_param_name, varying_param_value))
+    prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}_{}_{}={}_model={}/".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name))
     if not os.path.exists(prefix_name_loop):
         os.makedirs(prefix_name_loop)
+
+    # pop_batch_path = os.path.join(experiment_path, "pop={}_batch={}/".format(pop, batch))
+    # prefix_name_loop = os.path.join(pop_batch_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
+    # if not os.path.exists(pop_batch_path):
+    #     os.makedirs(pop_batch_path)
+    # if not os.path.exists(prefix_name_loop):
+    #     os.makedirs(prefix_name_loop)
 
 
     # Fit Algorithm
     # For plotting extra figure inside the training
     model['model'].batch_size = batch
     model['model'].model_name = model_name
-    model['model'].prefix = os.path.join(prefix_name_loop, model_name)
-    if not os.path.exists(model['model'].prefix):
-        os.makedirs(model['model'].prefix)
+    model['model'].prefix = prefix_name_loop
+    # model['model'].prefix = os.path.join(prefix_name_loop, model_name)
+    # if not os.path.exists(model['model'].prefix):
+    #     os.makedirs(model['model'].prefix)
     model['model'].paramName = varying_param_name
     model['model'].paramValue = varying_param_value
     model['model'].ground_truth = ground_truth
@@ -162,7 +170,7 @@ def run_experiment():
             # save the settings
             from shutil import copyfile
             mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-            settings_path = os.path.join(mmi_dir_path, 'settings.py')
+            settings_path = os.path.join(mmi_dir_path, 'settings_v2.py')
             copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
             break     
     plot(experiment_path)

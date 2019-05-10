@@ -41,8 +41,8 @@ pop_batch = [
     ]
 
 iter_num = int(312500)
-# snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
-snapshot = [i for i in range(0, iter_num, 100)]
+snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+# snapshot = [i for i in range(0, iter_num, 100)]
 
 
 time_now = datetime.now()
@@ -63,7 +63,8 @@ model = {
             log=True,
             sample_mode='marginal',
             earlyStop=False,
-            hidden_size=hidden_size*2
+            hidden_size=hidden_size*2,
+            iter_snapshot=snapshot
         ), 
         'color': 'magenta'
     },
@@ -81,7 +82,8 @@ model = {
             sample_mode='unif',
             earlyStop=False,
             add_mar=True,
-            hidden_size=hidden_size
+            hidden_size=hidden_size,
+            iter_snapshot=snapshot
         ), 
         'color': 'grey'
     },
@@ -99,7 +101,8 @@ model = {
             sample_mode='unif',
             earlyStop=False,
             add_mar=False,
-            hidden_size=hidden_size
+            hidden_size=hidden_size,
+            iter_snapshot=snapshot
         ), 
         'color': 'purple'
     },
@@ -116,7 +119,8 @@ model = {
             log=True,
             sample_mode='marginal',
             earlyStop=False,
-            hidden_size=hidden_size
+            hidden_size=hidden_size,
+            iter_snapshot=snapshot
         ), 
         'color': 'orange'
     },

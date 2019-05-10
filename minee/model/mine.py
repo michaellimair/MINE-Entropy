@@ -325,7 +325,7 @@ class Mine():
         ax[2].set_title('heatmap')
 
         # Plot result with ground truth
-        ml_lb_train = self.forward_pass(self.X_train)
+        ml_lb_train = self.forward_pass(self.X_train).item()
         ax[3].scatter(0, self.ground_truth, edgecolors='red', facecolors='none', label='Ground Truth')
         ax[3].scatter(0, ml_lb_estimate, edgecolors='green', facecolors='none', label="{}_Test".format(self.model_name))
         ax[3].scatter(0, ml_lb_train, edgecolors='blue', facecolors='none', label="{}_Train".format(self.model_name))
