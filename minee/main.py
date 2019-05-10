@@ -11,6 +11,7 @@ from .utils import save_train_curve
 from joblib import Parallel, delayed
 from . import settings
 from tqdm import tqdm
+import torch
 
 def saveResultsFig(results_dict, experiment_path=""):
     """
@@ -228,5 +229,8 @@ def run_experiment_batch_pop_ir():
             plot(experiment_path)
 
 if __name__ == "__main__":
+    random_seed = 0
+    np.random.seed(seed=random_seed)
+    torch.manual_seed(seed=random_seed)
     # run_experiment()
     run_experiment_batch_pop_ir()
