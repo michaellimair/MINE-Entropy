@@ -43,7 +43,8 @@ model = {
     'MINE_direct_hidden_X_2': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size, 
+            batch_size=batch_size,
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -63,6 +64,7 @@ model = {
         'model': MineMultiTask(
             lr=lr, 
             batch_size=batch_size, 
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -83,6 +85,7 @@ model = {
         'model': MineMultiTask(
             lr=lr, 
             batch_size=batch_size, 
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -102,7 +105,8 @@ model = {
     'MINE_direct': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size, 
+            batch_size=batch_size,
+            ref_size=batch_size, 
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 

@@ -40,6 +40,7 @@ model = {
         'model': Mine(
             lr=lr, 
             batch_size=batch_size, 
+            ref_size=batch_size, 
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -58,7 +59,8 @@ model = {
     'MINE_multi_task': {
         'model': MineMultiTask(
             lr=lr, 
-            batch_size=batch_size, 
+            batch_size=batch_size,  
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -78,7 +80,8 @@ model = {
     'MINE_entropy': {
         'model': MineMultiTask(
             lr=lr, 
-            batch_size=batch_size, 
+            batch_size=batch_size,  
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -98,7 +101,8 @@ model = {
     'MINE_direct': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size, 
+            batch_size=batch_size,  
+            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
