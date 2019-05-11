@@ -17,7 +17,7 @@ from datetime import datetime
 cpu = 24
 batch_size=64
 patience=int(250)
-lr = 2e-3
+lr = 1e-3
 moving_average_rate = 1
 hidden_size = 100
 
