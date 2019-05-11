@@ -171,7 +171,7 @@ def run_experiment():
             # save the settings
             from shutil import copyfile
             mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-            settings_path = os.path.join(mmi_dir_path, 'settings_v2.py')
+            settings_path = os.path.join(mmi_dir_path, 'c8k18_settings.py')
             copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
             break     
     plot(experiment_path)
