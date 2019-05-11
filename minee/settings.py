@@ -51,7 +51,6 @@ model = {
         'model': Mine(
             lr=lr, 
             batch_size=batch_size,  
-            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
@@ -113,7 +112,6 @@ model = {
         'model': Mine(
             lr=lr, 
             batch_size=batch_size,  
-            ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
