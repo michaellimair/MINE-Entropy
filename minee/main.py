@@ -9,7 +9,7 @@ import os
 from .utils import save_train_curve
 # from model import Mine, LinearReg, Kraskov
 from joblib import Parallel, delayed
-from . import settings_v2 as settings
+from . import settings
 from tqdm import tqdm
 
 def saveResultsFig(results_dict, experiment_path=""):

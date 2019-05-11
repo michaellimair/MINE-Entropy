@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal'):
+def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal', ref_bound_factor=1.0):
     """[summary]
     
     Arguments:
@@ -46,6 +46,11 @@ def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal')
     elif sample_mode == 'unif':
         dataMax = data.max(axis=0)[whole]
         dataMin = data.min(axis=0)[whole]
+        if ref_bound_factor > 1.0:
+            data_rad = (dataMax - dataMin)/2
+            data_mean = (dataMax + dataMin)/2
+            dataMax = data_mean + ref_bound_factor * data_rad
+            dataMin = data_mean - ref_bound_factor * data_rad
         batch = (dataMax - dataMin)*np.random.random((batch_size,len(cond)+1)) + dataMin
     elif sample_mode == 'marginal':
         joint_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
@@ -200,7 +205,7 @@ class MineMultiTaskNet(nn.Module):
         return x_output, y_output, xy_output
 
 class MineMultiTask():
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True, hidden_size=100):
+    def __init__(self, lr, batch_size, ref_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True, hidden_size=100, ref_bound_factor=1.0, video_frames=int(1e3)):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20
@@ -231,12 +236,24 @@ class MineMultiTask():
         self.mine_net_optim = optim.Adam(self.mine_net.parameters(), lr=self.lr)
         self.earlyStop = earlyStop
         self.iter_snapshot = iter_snapshot
+        self.ref_bound_factor = ref_bound_factor
+        self.ref_size = ref_size
+        self.video_frames = video_frames
 
     def fit(self, train_data, val_data):
         self.Xmin = min(train_data[:,0])
         self.Xmax = max(train_data[:,0])
         self.Ymin = min(train_data[:,1])
         self.Ymax = max(train_data[:,1])
+        if self.ref_bound_factor > 1.0:
+            X_mean = (self.Xmax + self.Xmin)/2
+            X_rad = (self.Xmax - self.Xmin)/2
+            self.Xmin = X_mean - self.ref_bound_factor*X_rad
+            self.Xmax = X_mean + self.ref_bound_factor*X_rad
+            Y_mean = (self.Ymax + self.Ymin)/2
+            Y_rad = (self.Ymax - self.Ymin)/2
+            self.Ymin = Y_mean - self.ref_bound_factor*Y_rad
+            self.Ymax = Y_mean + self.ref_bound_factor*Y_rad
     
         if self.log:
             log_file = os.path.join(self.prefix, "MINE_train.log")
@@ -248,10 +265,11 @@ class MineMultiTask():
             log.write("patience={0}\n".format(self.patience))
             log.write("iter_snapshot={0}\n".format(self.iter_snapshot))
             log.write("self.mine_net={0}\n".format(type(self.mine_net)))
+            log.write("ma_rate={0}\n".format(self.ma_rate))
+            log.write("video_frames={0}\n".format(self.video_frames))
             log.close()
-            # heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+            heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
         # data is x or y
-        result = list()
         self.ma_efx = 1.  # exponential of mi estimation on marginal data
         self.ma_efy = 1. 
         self.ma_efxy = 1. 
@@ -266,6 +284,8 @@ class MineMultiTask():
         valid_loss = []
         self.avg_train_loss = []
         self.avg_valid_loss = []
+        train_batch_mi_lb = []
+        train_batch_loss = []
         
         if self.earlyStop:
             earlyStop = EarlyStopping(patience=self.patience, verbose=self.verbose, prefix=self.prefix)
@@ -273,8 +293,12 @@ class MineMultiTask():
         for i in range(self.iter_num):
             #get train data
             batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
-                         sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
-            mi_lbTrain, lossTrain = self.update_mine_net(batchTrain, self.mine_net_optim)
+                         sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.ref_size, sample_mode=self.sample_mode, ref_bound_factor=self.ref_bound_factor)
+            batch_mi_lb, batch_loss = self.update_mine_net(batchTrain, self.mine_net_optim, ma_rate=self.ma_rate)
+            train_batch_loss.append(batch_loss)
+            train_batch_mi_lb.append(batch_mi_lb)
+
+            mi_lbTrain, lossTrain = self.forward_pass(self.X_train)
             train_loss.append(lossTrain)
             train_mi_lb.append(mi_lbTrain)
             
@@ -282,7 +306,12 @@ class MineMultiTask():
             valid_loss.append(lossVal)
             valid_mi_lb.append(mi_lbVal)
             
-            if (i+1)%(self.avg_freq)==0:
+            if self.avg_freq==1:
+                self.avg_train_loss.append(lossTrain)
+                self.avg_valid_loss.append(lossVal)
+                self.avg_train_mi_lb.append(mi_lbTrain)
+                self.avg_valid_mi_lb.append(mi_lbVal)
+            elif (i+1)%(self.avg_freq)==0:
                 self.avg_train_loss.append(np.average(train_loss))
                 self.avg_valid_loss.append(np.average(valid_loss))
                 self.avg_train_mi_lb.append(np.average(train_mi_lb))
@@ -311,20 +340,22 @@ class MineMultiTask():
                 ch = os.path.join(self.prefix, ch)
                 torch.save(self.mine_net.state_dict(), ch)
                 j += 1
-                # if self.log:
-                #     x = np.linspace(self.Xmin, self.Xmax, 300)
-                #     y = np.linspace(self.Ymin, self.Ymax, 300)
-                #     xs, ys = np.meshgrid(x,y)
-                #     fx, fy, fxy = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None]))))
-                #     i_xy = (fxy - fx - fy).detach().numpy().reshape(xs.shape[1], ys.shape[0])
-                #     # ixy = t - np.log(self.ma_et.mean().detach().numpy())
-                #     heatmap_animation_ax, c = plot_util.getHeatMap(heatmap_animation_ax, xs, ys, i_xy)
-                #     self.heatmap_frames.append((c,))
+            if self.video_frames>0:
+                x = np.linspace(self.Xmin, self.Xmax, 300)
+                y = np.linspace(self.Ymin, self.Ymax, 300)
+                xs, ys = np.meshgrid(x,y)
+                fx, fy, fxy = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None]))))
+                i_xy = (fxy - fx - fy).detach().numpy().reshape(xs.shape[1], ys.shape[0])
+                # ixy = t - np.log(self.ma_et.mean().detach().numpy())
+                heatmap_animation_ax, c = plot_util.getHeatMap(heatmap_animation_ax, xs, ys, i_xy)
+                self.heatmap_frames.append((c,))
+                if (i+1)%self.video_frames==0:
+                    writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
+                    heatmap_animation = animation.ArtistAnimation(heatmap_animation_fig, self.heatmap_frames, interval=200, blit=False)
+                    heatmap_animation.save(os.path.join(self.prefix, "heatmap_less_than_{}.mp4".format(i+1)), writer=writer)
+                    self.heatmap_frames=[]
     
         if self.log:
-            # writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
-            # heatmap_animation = animation.ArtistAnimation(heatmap_animation_fig, self.heatmap_frames, interval=200, blit=False)
-            # heatmap_animation.save(os.path.join(self.prefix, 'heatmap.mp4'), writer=writer)
             #Save result to files
             avg_train_loss = np.array(self.avg_train_loss )
             np.savetxt(os.path.join(self.prefix, "avg_train_loss .txt"), avg_train_loss )
@@ -334,6 +365,11 @@ class MineMultiTask():
             np.savetxt(os.path.join(self.prefix, "avg_train_mi_lb.txt"), avg_train_mi_lb)
             avg_valid_mi_lb = np.array(self.avg_valid_mi_lb)
             np.savetxt(os.path.join(self.prefix, "avg_valid_mi_lb.txt"), avg_valid_mi_lb)
+
+            train_batch_mi_lb = np.array(train_batch_mi_lb)
+            np.savetxt(os.path.join(self.prefix, "train_batch_mi_lb.txt"), train_batch_mi_lb)
+            train_batch_mi_lb = np.array(train_batch_mi_lb)
+            np.savetxt(os.path.join(self.prefix, "train_batch_mi_lb.txt"), train_batch_mi_lb)
 
         if self.earlyStop:
             ch = os.path.join(self.prefix, "checkpoint.pt")
@@ -389,7 +425,7 @@ class MineMultiTask():
 
     def forward_pass(self, X):
         joint = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode='joint')
-        reference = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode=self.sample_mode)
+        reference = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=self.ref_size, sample_mode=self.sample_mode, ref_bound_factor=self.ref_bound_factor)
         joint = torch.autograd.Variable(torch.FloatTensor(joint))
         reference = torch.autograd.Variable(torch.FloatTensor(reference))
         mi_lb, fx, fy, fxy, efx, efy, efxy = self.mutual_information(joint, reference)
@@ -419,10 +455,19 @@ class MineMultiTask():
         mi_lb, _ = self.forward_pass(self.X_test)
 
         if self.log:
-            self.savefig(mi_lb)
+            self.savefig(mi_lb, suffix="_iter={}".format(self.iter_num))
             ch = "checkpoint_iter={}.pt".format(self.iter_num)
             ch = os.path.join(self.prefix, ch)
             torch.save(self.mine_net.state_dict(), ch)
+
+        #release memory
+        self.heatmap_frames=[]
+        self.avg_train_loss=[]
+        self.avg_train_mi_lb=[]
+        self.avg_valid_loss=[]
+        self.avg_valid_mi_lb=[]
+        self.X_test=[]
+        self.X_train=[]
         return mi_lb
 
     def savefig(self, ml_lb_estimate, suffix=""):
@@ -443,12 +488,8 @@ class MineMultiTask():
         axCur.set_title('train curve of total loss')
 
         # Trained Function contour plot
-        Xmin = min(self.X_train[:,0])
-        Xmax = max(self.X_train[:,0])
-        Ymin = min(self.X_train[:,1])
-        Ymax = max(self.X_train[:,1])
-        x = np.linspace(Xmin, Xmax, 300)
-        y = np.linspace(Ymin, Ymax, 300)
+        x = np.linspace(self.Xmin, self.Xmax, 300)
+        y = np.linspace(self.Ymin, self.Ymax, 300)
         xs, ys = np.meshgrid(x,y)
         fx, fy, fxy = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None]))))
         ixy = (fxy - fx - fy).detach().numpy()
