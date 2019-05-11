@@ -50,3 +50,10 @@ from minee.model.mine import sample_batch
 import os
 import dill
 
+def mi_max_envelope_estimate(mi_estimate,stopping_t, w1=50,w2=50):
+    mi_smooth = np.array([max(mi_estimate[:i+1][-w1:]) for i in range(mi_estimate.size)])
+    plt.plot(mi_estimate[:stopping_t+1],color='yellow')
+    plt.plot(mi_smooth[:stopping_t+1],color='green')
+    mi = mi_smooth[:stopping_t+1][-w2:].mean()
+    plt.axhline(mi)
+    return mi
