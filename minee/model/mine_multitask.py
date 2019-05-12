@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal', ref_bound_factor=1.0):
+def sample_batch(data, resp=1, cond=[0], batch_size=100, sample_mode='marginal', ref_bound_factor=1.0):
     """[summary]
     
     Arguments:
@@ -36,7 +36,13 @@ def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal',
     """
     if type(cond)==list:
         whole = cond.copy()
-        whole.append(resp)
+        if type(resp)==list:
+            for i in resp:
+                whole.append(i)
+        elif type(resp)==int:
+            whole.append(resp)
+        else:
+            raise TypeError("resp should be list or int")
     else:
         raise TypeError("cond should be list")
     if sample_mode == 'joint':
@@ -51,11 +57,15 @@ def sample_batch(data, resp=0, cond=[1], batch_size=100, sample_mode='marginal',
             data_mean = (dataMax + dataMin)/2
             dataMax = data_mean + ref_bound_factor * data_rad
             dataMin = data_mean - ref_bound_factor * data_rad
-        batch = (dataMax - dataMin)*np.random.random((batch_size,len(cond)+1)) + dataMin
+        batch = (dataMax - dataMin)*np.random.random((batch_size,len(whole))) + dataMin
     elif sample_mode == 'marginal':
         joint_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
         marginal_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
-        batch = np.concatenate([data[joint_index][:,resp].reshape(-1,1), data[marginal_index][:,cond].reshape(-1,len(cond))], axis=1)
+        if type(resp)==list:
+            data_resp = data[marginal_index][:,resp].reshape(-1,len(resp))
+        elif type(resp)==int:
+            data_resp = data[marginal_index][:,resp].reshape(-1,1)
+        batch = np.concatenate([data[joint_index][:,cond].reshape(-1,len(cond)), data_resp], axis=1)
     else:
         raise ValueError('Sample mode: {} not recognized.'.format(sample_mode))
     return batch
