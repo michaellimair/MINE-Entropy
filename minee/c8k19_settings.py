@@ -17,21 +17,18 @@ from datetime import datetime
 cpu = 24
 batch_size=64
 patience=int(250)
-lr = 2e-3
+lr = 1e-3
 moving_average_rate = 1
 hidden_size = 100
 
 pop_batch = [
-    (32, 32), (32, 8), (32, 2), 
-    (128, 128), (128, 32), (128, 2), (128, 8), 
-    (512, 512), (512, 128), (512, 2), (512, 8), (512, 32), 
-    (2048, 2), (2048, 8), (2048, 32), (2048, 128), (2048, 512), (2048, 2048), 
-    (8192, 2), (8192, 8), (8192, 32), (8192, 128), (8192, 512), (8192, 2048), (8192, 8192)
+    (2048, 2048), 
+    (8192, 8192)
     ]
 
 iter_num = int(312500)
 snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
-video_frames=int(1e3)
+video_frames=int(0)
 # snapshot = [i for i in range(0, iter_num, 100)]
 
 
