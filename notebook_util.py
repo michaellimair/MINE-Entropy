@@ -23,10 +23,10 @@ mpl.use('Agg')
 import torch.nn as nn
 import torch.nn.functional as F
 
-sigma = .02
 class MineNet(nn.Module):
     def __init__(self, input_size=2, hidden_size=100):
         super().__init__()
+        sigma = .02
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, 1)
@@ -45,7 +45,55 @@ class MineNet(nn.Module):
 
 from torch import optim
 
-from minee.model.mine import sample_batch
+def resample(data,batch_size,replace=False):
+    index = np.random.choice(range(data.shape[0]), size=batch_size, replace=replace)
+    batch = data[index]
+    return batch
+
+#def resample_marginal(data,batch_size,X_ind,Y_ind,replace=False):
+#    X_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=replace)
+#    marginal_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
+#    batch = np.concatenate([data[joint_index][:,resp].reshape(-1,1), data[marginal_index][:,cond].reshape(-1,len(cond))], axis=1)
+    
+
+def sample_batch(data, x_index=0, y_index=[1], batch_size=100, sample_mode='marginal'):
+    """[summary]
+    
+    Arguments:
+        data {[type]} -- [N X 2]
+        resp {[int]} -- [description]
+        cond {[list]} -- [1 dimension]
+    
+    Keyword Arguments:
+        batch_size {int} -- [description] (default: {100})
+        randomJointIdx {bool} -- [description] (default: {True})
+    
+    Returns:
+        [batch_joint] -- [batch size X 2]
+        [batch_mar] -- [batch size X 2]
+    """
+    if type(cond)==list:
+        whole = cond.copy()
+        whole.append(resp)
+    else:
+        raise TypeError("cond should be list")
+    if sample_mode == 'joint':
+        index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
+        batch = data[index]
+        batch = batch[:, whole]
+    elif sample_mode == 'unif':
+        dataMax = data.max(axis=0)[whole]
+        dataMin = data.min(axis=0)[whole]
+        batch = (dataMax - dataMin)*np.random.random((batch_size,len(cond)+1)) + dataMin
+    elif sample_mode == 'marginal':
+        joint_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
+        marginal_index = np.random.choice(range(data.shape[0]), size=batch_size, replace=False)
+        batch = np.concatenate([data[joint_index][:,resp].reshape(-1,1), data[marginal_index][:,cond].reshape(-1,len(cond))], axis=1)
+    else:
+        raise ValueError('Sample mode: {} not recognized.'.format(sample_mode))
+    return batch
+
+
 
 import os
 import dill
