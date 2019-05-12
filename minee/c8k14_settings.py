@@ -22,10 +22,10 @@ moving_average_rate = 1
 hidden_size = 100
 
 pop_batch = [
-    (128, 128), (32, 8), (32, 2), (32, 32), (128, 32)
+    (128, 128), (128, 32)
     ]
 
-iter_num = int(312500)
+iter_num = int(1e5)
 snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
 video_frames=int(0)
 # snapshot = [i for i in range(0, iter_num, 100)]
@@ -36,25 +36,25 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    'MINE_direct_hidden_X_2': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(1), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='marginal',
-            earlyStop=False,
-            hidden_size=hidden_size*2,
-            iter_snapshot=snapshot,
-            video_frames=video_frames
-        ), 
-        'color': 'magenta'
-    },
+    # 'MINE_direct_hidden_X_2': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size, 
+    #         patience=patience, 
+    #         iter_num=iter_num, 
+    #         log_freq=int(100), 
+    #         avg_freq=int(1), 
+    #         ma_rate=moving_average_rate, 
+    #         verbose=False,
+    #         log=True,
+    #         sample_mode='marginal',
+    #         earlyStop=False,
+    #         hidden_size=hidden_size*2,
+    #         iter_snapshot=snapshot,
+    #         video_frames=video_frames
+    #     ), 
+    #     'color': 'magenta'
+    # },
     'MINE_multi_task': {
         'model': MineMultiTask(
             lr=lr, 
