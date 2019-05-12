@@ -9,7 +9,7 @@ import os
 from .utils import save_train_curve
 # from model import Mine, LinearReg, Kraskov
 from joblib import Parallel, delayed
-from . import c8k14_settings as settings
+from . import gateway_settings as settings
 from tqdm import tqdm
 
 def saveResultsFig(results_dict, experiment_path=""):
@@ -171,8 +171,8 @@ def run_experiment():
             # save the settings
             from shutil import copyfile
             mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-            settings_path = os.path.join(mmi_dir_path, 'c8k14_settings.py')
-            copyfile(settings_path, os.path.join(experiment_path, 'c8k14_settings.py'))
+            settings_path = os.path.join(mmi_dir_path, 'gateway_settings.py')
+            copyfile(settings_path, os.path.join(experiment_path, 'gateway_settings.py'))
             break     
     plot(experiment_path)
 

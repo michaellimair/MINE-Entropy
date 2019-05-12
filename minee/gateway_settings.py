@@ -14,15 +14,18 @@ import math
 import os
 from datetime import datetime
 
-cpu = 24
+cpu = 96
 batch_size=64
 patience=int(250)
 lr = 1e-3
-moving_average_rate = 1
+moving_average_rate = 0.01
 hidden_size = 100
 
 pop_batch = [
-    (512, 512), (512, 128)
+    (128, 128), (8192, 8192), (512, 512), (2048, 2048), 
+    (512, 128), (512, 32), 
+    (2048, 32), (2048, 128), 
+    (8192, 32), (8192, 128), (128, 32), (8192, 2048)
     ]
 
 iter_num = int(1e5)
@@ -39,7 +42,7 @@ model = {
     # 'MINE_direct_hidden_X_2': {
     #     'model': Mine(
     #         lr=lr, 
-    #         batch_size=batch_size,  
+    #         batch_size=batch_size,
     #         patience=patience, 
     #         iter_num=iter_num, 
     #         log_freq=int(100), 
@@ -58,7 +61,7 @@ model = {
     'MINE_multi_task': {
         'model': MineMultiTask(
             lr=lr, 
-            batch_size=batch_size,  
+            batch_size=batch_size, 
             ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
@@ -79,7 +82,7 @@ model = {
     'MINE_entropy': {
         'model': MineMultiTask(
             lr=lr, 
-            batch_size=batch_size,  
+            batch_size=batch_size, 
             ref_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
@@ -100,7 +103,7 @@ model = {
     'MINE_direct': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size,  
+            batch_size=batch_size,
             patience=patience, 
             iter_num=iter_num, 
             log_freq=int(100), 
