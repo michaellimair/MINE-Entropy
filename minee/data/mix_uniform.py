@@ -3,15 +3,15 @@ from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
 class MixedUniform():
-    def __init__(self, mix, width_a, width_b, n_samples):
-        self.mix, self.width_a, self.width_b, self.n_samples = mix, width_a, width_b, n_samples
+    def __init__(self, mix, width_a, width_b, sample_size):
+        self.mix, self.width_a, self.width_b, self.sample_size = mix, width_a, width_b, sample_size
 
     @property
     def data(self):
         mix, a, b = self.mix, self.width_a, self.width_b
-        N1 = int(mix*self.n_samples)
+        N1 = int(mix*self.sample_size)
         temp1 = np.array([[np.random.uniform(-.5*a,.5*a,N1)], [np.random.uniform(-.5/a,.5/a,N1)]]).T.reshape(N1,2)
-        N2 = self.n_samples-N1
+        N2 = self.sample_size-N1
         temp2 = np.array([[np.random.uniform(-.5/b,.5/b,N2)], [np.random.uniform(-.5*b,.5*b,N2)]]).T.reshape(N2,2)
         #return np.append(temp1,temp2,axis = 0) 
         temp  = np.append(temp1,temp2,axis = 0) 

@@ -61,7 +61,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     """
 
     # results = dict()
-    data_model.n_samples = pop
+    data_model.sample_size = pop
 
     X_train = data_model.data
     X_test = data_model.data

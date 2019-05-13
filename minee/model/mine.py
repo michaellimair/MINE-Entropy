@@ -168,10 +168,13 @@ class Mine():
         if self.earlyStop:
             earlyStop = EarlyStopping(patience=self.patience, verbose=self.verbose, prefix=self.prefix)
         j = 0
+        batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
+                        sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
+        self.data_joint, self.data_mar = batchTrain
         for i in range(self.iter_num):
             #get train data
-            batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
-                         sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
+            # batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
+            #              sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
             batch_mi_lb, batch_loss = self.update_mine_net(batchTrain, self.mine_net_optim, ma_rate=self.ma_rate)
             train_batch_loss.append(batch_loss)
             train_batch_mi_lb.append(batch_mi_lb)
@@ -215,7 +218,8 @@ class Mine():
                 x = np.linspace(self.Xmin, self.Xmax, 300)
                 y = np.linspace(self.Ymin, self.Ymax, 300)
                 xs, ys = np.meshgrid(x,y)
-                t = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+                # t = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+                t = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
                 t = t.reshape(xs.shape[1], ys.shape[0])
                 # ixy = t - np.log(self.ma_et.mean().detach().numpy())
                 heatmap_animation_ax, c = plot_util.getHeatMap(heatmap_animation_ax, xs, ys, t)
@@ -257,8 +261,10 @@ class Mine():
 
         # batch is a tuple of (joint, marginal)
         joint , marginal = batch
-        joint = torch.autograd.Variable(torch.FloatTensor(joint))
-        marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        # joint = torch.autograd.Variable(torch.FloatTensor(joint))
+        # marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        joint = torch.autograd.Variable(torch.Tensor(joint))
+        marginal = torch.autograd.Variable(torch.Tensor(marginal))
         mi_lb , t, et = self.mutual_information(joint, marginal)
         self.ma_et = (1-ma_rate)*self.ma_et + ma_rate*torch.mean(et)
         
@@ -282,8 +288,10 @@ class Mine():
     def forward_pass(self, X):
         joint = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode='joint')
         marginal = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode=self.sample_mode)
-        joint = torch.autograd.Variable(torch.FloatTensor(joint))
-        marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        # joint = torch.autograd.Variable(torch.FloatTensor(joint))
+        # marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        joint = torch.autograd.Variable(torch.Tensor(joint))
+        marginal = torch.autograd.Variable(torch.Tensor(marginal))
         mi_lb , _, _ = self.mutual_information(joint, marginal)
         return mi_lb.item()
 
@@ -333,8 +341,10 @@ class Mine():
             raise ValueError("Only support 2-dim or 1-dim")
         fig, ax = plt.subplots(1,4, figsize=(90, 15))
         #plot Data
-        ax[0].scatter(self.X_train[:,self.resp], self.X_train[:,self.cond], color='red', marker='o', label='train')
-        ax[0].scatter(self.X_test[:,self.resp], self.X_test[:,self.cond], color='green', marker='x', label='test')
+        # ax[0].scatter(self.X_train[:,self.resp], self.X_train[:,self.cond], color='red', marker='o', label='train')
+        # ax[0].scatter(self.X_test[:,self.resp], self.X_test[:,self.cond], color='green', marker='x', label='test')
+        ax[0].scatter(self.data_joint[:,self.cond], self.data_joint[:,self.resp], color='red', marker='o', label='joint')
+        ax[0].scatter(self.data_mar[:,self.cond], self.data_mar[:,self.resp], color='green', marker='x', label='marginal')
         ax[0].legend()
 
         #plot training curve
@@ -346,7 +356,8 @@ class Mine():
         x = np.linspace(self.Xmin, self.Xmax, 300)
         y = np.linspace(self.Ymin, self.Ymax, 300)
         xs, ys = np.meshgrid(x,y)
-        z = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+        # z = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+        z = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
         z = z.reshape(xs.shape[1], ys.shape[0])
         ax[2], c = plot_util.getHeatMap(ax[2], xs, ys, z)
 

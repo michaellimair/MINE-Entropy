@@ -119,8 +119,8 @@ model = {
     },
 }
 
-# n_samples = 6400
-n_samples = batch_size * 20
+# sample_size = 6400
+sample_size = batch_size * 20
 rhos = [ 0, 0.2, 0.6 ,0.8, 0.9, 0.99 ]
 # rhos = [0.999]
 widths = list(range(2, 12, 4))
@@ -131,7 +131,7 @@ data = {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'mean1':0, 
                 'mean2':0, 
                 'rho1': rho, 
@@ -145,7 +145,7 @@ data = {
         'model': Gaussian, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'mean1':0, 
                 'mean2':0, 
                 'rho': rho,
@@ -158,7 +158,7 @@ data = {
         'model': MixedUniform, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'width_a': width, 
                 'width_b': width, 
                 'mix': 0.5
@@ -170,7 +170,7 @@ data = {
     # {
     #     'name': 'Examples', 
     #     'model': XX(
-    #         n_samples=XX
+    #         sample_size=XX
     #         rho=XX
     #     )
     # }, 

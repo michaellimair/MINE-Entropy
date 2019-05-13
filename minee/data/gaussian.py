@@ -3,8 +3,8 @@ from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
 class Gaussian():
-    def __init__(self, n_samples, mean1, mean2, rho, varValue=0):
-        self.n_samples = n_samples
+    def __init__(self, sample_size, mean1, mean2, rho, varValue=0):
+        self.sample_size = sample_size
         self.mean1 = mean1
         self.mean2 = mean2
         self.rho = rho
@@ -19,7 +19,7 @@ class Gaussian():
         return np.random.multivariate_normal(
             mean=[self.mean1, self.mean2],
             cov=[[1, self.rho], [self.rho, 1]], 
-            size=self.n_samples)
+            size=self.sample_size)
 
     @property
     def ground_truth(self):

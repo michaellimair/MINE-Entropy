@@ -193,7 +193,7 @@ def run_experiment_batch_pop_ir(pop_, bat_):
         settings.model[model_name]['model'].iter_snapshot = snapshot
     # settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
     #                                                 {
-    #                                                     'n_samples': pop_, 
+    #                                                     'sample_size': pop_, 
     #                                                     'mean1':0, 
     #                                                     'mean2':0, 
     #                                                     'rho1': rho, 
@@ -202,7 +202,7 @@ def run_experiment_batch_pop_ir(pop_, bat_):
     #                                             ]
     settings.data['Gaussian']['kwargs'] = [
                                             {
-                                                'n_samples':pop_, 
+                                                'sample_size':pop_, 
                                                 'mean1':0, 
                                                 'mean2':0, 
                                                 'rho': rho,
@@ -210,7 +210,7 @@ def run_experiment_batch_pop_ir(pop_, bat_):
                                         ]
     # settings.data['Mixed Uniform']['kwargs'] = [
     #                                             {
-    #                                                 'n_samples':pop_, 
+    #                                                 'sample_size':pop_, 
     #                                                 'width_a': width, 
     #                                                 'width_b': width, 
     #                                                 'mix': 0.5

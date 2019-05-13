@@ -14,16 +14,16 @@ import math
 import os
 from datetime import datetime
 
-cpu = 90
+cpu = 1
 batch_size=64
 patience=int(250)
-lr = 2e-3
-moving_average_rate = 1
+lr = 1e-3
+moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (32, 32), (32, 8), (32, 2), 
-    (128, 128), (128, 32), (128, 2), (128, 8), 
+    # (32, 32), (32, 8), (32, 2), 
+    (200, 200), (128, 32), (128, 2), (128, 8), 
     (512, 512), (512, 128), (512, 2), (512, 8), (512, 32), 
     (2048, 2), (2048, 8), (2048, 32), (2048, 128), (2048, 512), (2048, 2048), 
     (8192, 2), (8192, 8), (8192, 32), (8192, 128), (8192, 512), (8192, 2048), (8192, 8192)
@@ -36,9 +36,10 @@ pop_batch = [
 #     (8192, 2), (8192, 8), (8192, 32), (8192, 128), (8192, 512), (8192, 2048), (8192, 8192)
 #     ]
 
-iter_num = int(312500)
-snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
-video_frames=int(1e3)
+iter_num = int(1e5)
+# snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
+video_frames=int(0)
 # snapshot = [i for i in range(0, iter_num, 100)]
 
 
@@ -129,10 +130,10 @@ model = {
     },
 }
 
-# n_samples = 6400
-n_samples = batch_size * 20
-rhos = [ 0, 0.2, 0.6 ,0.8, 0.9, 0.99 ]
-# rhos = [0.999]
+# sample_size = 6400
+sample_size = batch_size * 20
+# rhos = [ 0, 0.2, 0.6 ,0.8, 0.9, 0.99 ]
+rhos = [0.9]
 widths = list(range(2, 12, 4))
 
 
@@ -141,7 +142,7 @@ data = {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'mean1':0, 
                 'mean2':0, 
                 'rho1': rho, 
@@ -155,7 +156,7 @@ data = {
         'model': Gaussian, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'mean1':0, 
                 'mean2':0, 
                 'rho': rho,
@@ -168,7 +169,7 @@ data = {
         'model': MixedUniform, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'width_a': width, 
                 'width_b': width, 
                 'mix': 0.5
@@ -180,7 +181,7 @@ data = {
     # {
     #     'name': 'Examples', 
     #     'model': XX(
-    #         n_samples=XX
+    #         sample_size=XX
     #         rho=XX
     #     )
     # }, 

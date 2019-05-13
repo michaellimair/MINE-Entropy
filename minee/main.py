@@ -62,7 +62,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     """
 
     # results = dict()
-    data_model.n_samples = pop
+    data_model.sample_size = pop
 
     X_train = data_model.data
     X_test = data_model.data
@@ -180,7 +180,7 @@ def run_experiment():
             # save the settings
             from shutil import copyfile
             mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-            settings_path = os.path.join(mmi_dir_path, 'settings_v2.py')
+            settings_path = os.path.join(mmi_dir_path, 'settings.py')
             copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
             break     
     plot(experiment_path)
@@ -202,7 +202,7 @@ def run_experiment_batch_pop_ir():
             
             settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
                                                             {
-                                                                'n_samples': pop_, 
+                                                                'sample_size': pop_, 
                                                                 'mean1':0, 
                                                                 'mean2':0, 
                                                                 'rho1': rho, 
@@ -211,7 +211,7 @@ def run_experiment_batch_pop_ir():
                                                         ]
             settings.data['Gaussian']['kwargs'] = [
                                                     {
-                                                        'n_samples':pop_, 
+                                                        'sample_size':pop_, 
                                                         'mean1':0, 
                                                         'mean2':0, 
                                                         'rho': rho,
@@ -219,7 +219,7 @@ def run_experiment_batch_pop_ir():
                                                 ]
             settings.data['Mixed Uniform']['kwargs'] = [
                                                         {
-                                                            'n_samples':pop_, 
+                                                            'sample_size':pop_, 
                                                             'width_a': width, 
                                                             'width_b': width, 
                                                             'mix': 0.5
