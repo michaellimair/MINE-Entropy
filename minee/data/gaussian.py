@@ -23,7 +23,7 @@ class Gaussian():
 
     @property
     def ground_truth(self):
-        return -0.5*np.log(1-self.rho*self.rho)
+        return -0.5*np.log(1-self.rho**2)
         # covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
         # def fxy(x,y):
         #     X = np.array([x, y])

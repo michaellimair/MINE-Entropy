@@ -409,15 +409,12 @@ class MineMultiTask():
         self.ma_efxy = ((1-ma_rate)*self.ma_efxy + ma_rate*torch.mean(efxy)).item()
         
         # unbiasing use moving average
-        loss = -(torch.mean(fx) - (1/self.ma_efx)*torch.mean(efx)) \
-               -(torch.mean(fy) - (1/self.ma_efy)*torch.mean(efy)) \
-               -(torch.mean(fxy) - (1/self.ma_efxy)*torch.mean(efxy))
+        loss = -(torch.mean(fx) - (1/self.ma_efx)*torch.mean(efx)) - (torch.mean(fy) - (1/self.ma_efy)*torch.mean(efy)) - (torch.mean(fxy) - (1/self.ma_efxy)*torch.mean(efxy))
 
-        lossTrain = loss
         mine_net_optim.zero_grad()
         autograd.backward(loss)
         mine_net_optim.step()
-        return mi_lb.item(), lossTrain.item()
+        return mi_lb.item(), loss.item()
 
     def mutual_information(self, joint, reference):
         fx, fy, fxy = self.mine_net(joint)
@@ -440,9 +437,7 @@ class MineMultiTask():
         reference = torch.autograd.Variable(torch.FloatTensor(reference))
         mi_lb, fx, fy, fxy, efx, efy, efxy = self.mutual_information(joint, reference)
 
-        loss = -(torch.mean(fx) - (1/self.ma_efx)*torch.mean(efx)) \
-               -(torch.mean(fy) - (1/self.ma_efy)*torch.mean(efy)) \
-               -(torch.mean(fxy) - (1/self.ma_efxy)*torch.mean(efxy))
+        loss = -(torch.mean(fx) - (1/self.ma_efx)*torch.mean(efx)) -(torch.mean(fy) - (1/self.ma_efy)*torch.mean(efy)) -(torch.mean(fxy) - (1/self.ma_efxy)*torch.mean(efxy))
 
         return mi_lb.item(), loss.item()
 
@@ -494,7 +489,8 @@ class MineMultiTask():
 
         #plot training curve
         axCur = ax[0,1]
-        axCur = plot_util.getTrainCurve(self.avg_train_loss , self.avg_valid_loss, axCur, show_min=False)
+        # axCur = plot_util.getTrainCurve(self.avg_train_loss , self.avg_valid_loss, axCur, show_min=False)
+        axCur = plot_util.getTrainCurve(self.avg_train_loss , [], axCur, show_min=False, ground_truth=self.ground_truth)
         axCur.set_title('train curve of total loss')
 
         # Trained Function contour plot
@@ -562,7 +558,8 @@ class MineMultiTask():
 
         #plot mi_lb curve
         axCur = ax[1,1]
-        axCur = plot_util.getTrainCurve(self.avg_train_mi_lb , self.avg_valid_mi_lb, axCur, show_min=False)
+        # axCur = plot_util.getTrainCurve(self.avg_train_mi_lb , self.avg_valid_mi_lb, axCur, show_min=False)
+        axCur = plot_util.getTrainCurve(self.avg_train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth)
         axCur.set_title('training curve of mutual information')
 
         figName = os.path.join(self.prefix, "MINE{}".format(suffix))

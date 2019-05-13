@@ -338,7 +338,8 @@ class Mine():
         ax[0].legend()
 
         #plot training curve
-        ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, self.avg_valid_mi_lb, ax[1], show_min=self.earlyStop)
+        # ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, self.avg_valid_mi_lb, ax[1], show_min=self.earlyStop)
+        ax[1] = plot_util.getTrainCurve(self.avg_train_mi_lb, [], ax[1], show_min=self.earlyStop, ground_truth=self.ground_truth)
         ax[1].set_title('train curve of total loss')
 
         # Trained Function contour plot

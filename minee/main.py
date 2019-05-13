@@ -11,6 +11,7 @@ from .utils import save_train_curve
 from joblib import Parallel, delayed
 from . import settings
 from tqdm import tqdm
+import torch
 
 def saveResultsFig(results_dict, experiment_path=""):
     """
@@ -69,14 +70,23 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
 
     prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}_{}_{}={}_model={}/".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name))
     if not os.path.exists(prefix_name_loop):
-        os.makedirs(prefix_name_loop)
-
-    # pop_batch_path = os.path.join(experiment_path, "pop={}_batch={}/".format(pop, batch))
-    # prefix_name_loop = os.path.join(pop_batch_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
-    # if not os.path.exists(pop_batch_path):
-    #     os.makedirs(pop_batch_path)
-    # if not os.path.exists(prefix_name_loop):
-    #     os.makedirs(prefix_name_loop)
+        os.makedirs(prefix_name_loop, exist_ok=True)
+        
+    #Plot Ground Truth MI
+    fig, ax = plt.subplots(figsize=(15, 15))
+    Xmax = max(X_train[:,0])
+    Xmin = min(X_train[:,0])
+    Ymax = max(X_train[:,1])
+    Ymin = min(X_train[:,1])
+    x = np.linspace(Xmin, Xmax, 300)
+    y = np.linspace(Ymin, Ymax, 300)
+    xs, ys = np.meshgrid(x,y)
+    ax, c = data_model.plot_i(ax, xs, ys)
+    fig.colorbar(c, ax=ax)
+    ax.set_title("i(X;Y)")
+    figName = os.path.join(prefix_name_loop, "i_XY")
+    fig.savefig(figName, bbox_inches='tight')
+    plt.close()
 
 
     # Fit Algorithm
@@ -232,5 +242,8 @@ def run_experiment_batch_pop_ir():
             plot(experiment_path)
 
 if __name__ == "__main__":
+    random_seed = 0
+    np.random.seed(seed=random_seed)
+    torch.manual_seed(seed=random_seed)
     run_experiment()
     # run_experiment_batch_pop_ir()
