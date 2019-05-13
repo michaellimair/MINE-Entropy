@@ -105,7 +105,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], hidden_size=100, video_frames=int(1e3)):
+    def __init__(self, lr, batch_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=1, cond=[0], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], hidden_size=100, video_frames=int(1e3)):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20
@@ -261,10 +261,10 @@ class Mine():
 
         # batch is a tuple of (joint, marginal)
         joint , marginal = batch
-        # joint = torch.autograd.Variable(torch.FloatTensor(joint))
-        # marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
-        joint = torch.autograd.Variable(torch.Tensor(joint))
-        marginal = torch.autograd.Variable(torch.Tensor(marginal))
+        joint = torch.autograd.Variable(torch.FloatTensor(joint))
+        marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        # joint = torch.autograd.Variable(torch.Tensor(joint))
+        # marginal = torch.autograd.Variable(torch.Tensor(marginal))
         mi_lb , t, et = self.mutual_information(joint, marginal)
         self.ma_et = (1-ma_rate)*self.ma_et + ma_rate*torch.mean(et)
         
@@ -288,10 +288,10 @@ class Mine():
     def forward_pass(self, X):
         joint = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode='joint')
         marginal = sample_batch(X, resp= self.resp, cond= self.cond, batch_size=X.shape[0], sample_mode=self.sample_mode)
-        # joint = torch.autograd.Variable(torch.FloatTensor(joint))
-        # marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
-        joint = torch.autograd.Variable(torch.Tensor(joint))
-        marginal = torch.autograd.Variable(torch.Tensor(marginal))
+        joint = torch.autograd.Variable(torch.FloatTensor(joint))
+        marginal = torch.autograd.Variable(torch.FloatTensor(marginal))
+        # joint = torch.autograd.Variable(torch.Tensor(joint))
+        # marginal = torch.autograd.Variable(torch.Tensor(marginal))
         mi_lb , _, _ = self.mutual_information(joint, marginal)
         return mi_lb.item()
 
