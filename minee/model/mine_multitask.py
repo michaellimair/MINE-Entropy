@@ -215,7 +215,7 @@ class MineMultiTaskNet(nn.Module):
         return x_output, y_output, xy_output
 
 class MineMultiTask():
-    def __init__(self, lr, batch_size, ref_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=0, cond=[1], log=True, sample_mode='marginal', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True, hidden_size=100, ref_bound_factor=1.0, video_frames=int(1e3)):
+    def __init__(self, lr, batch_size, ref_size, patience=int(20), iter_num=int(1e+3), log_freq=int(100), avg_freq=int(10), ma_rate=0.01, verbose=True, resp=1, cond=[0], log=True, sample_mode='unif', y_label="", earlyStop=True, iter_snapshot=[], add_mar=True, hidden_size=100, ref_bound_factor=1.0, video_frames=int(1e3)):
         self.lr = lr
         self.batch_size = batch_size
         self.patience = patience  # 20

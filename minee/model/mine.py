@@ -168,13 +168,10 @@ class Mine():
         if self.earlyStop:
             earlyStop = EarlyStopping(patience=self.patience, verbose=self.verbose, prefix=self.prefix)
         j = 0
-        batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
-                        sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
-        self.data_joint, self.data_mar = batchTrain
         for i in range(self.iter_num):
             #get train data
-            # batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
-            #              sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
+            batchTrain = sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode='joint'), \
+                         sample_batch(train_data, resp= self.resp, cond= self.cond, batch_size=self.batch_size, sample_mode=self.sample_mode)
             batch_mi_lb, batch_loss = self.update_mine_net(batchTrain, self.mine_net_optim, ma_rate=self.ma_rate)
             train_batch_loss.append(batch_loss)
             train_batch_mi_lb.append(batch_mi_lb)
@@ -208,6 +205,7 @@ class Mine():
                             print("Early stopping")
                         break
             if len(self.iter_snapshot)>j and (i+1)%self.iter_snapshot[j]==0:
+                self.data_joint, self.data_mar = batchTrain
                 mi_lb_ = self.forward_pass(val_data)
                 self.savefig(mi_lb_, suffix="_iter={}".format(self.iter_snapshot[j]))
                 ch = "checkpoint_iter={}.pt".format(self.iter_snapshot[j])
@@ -218,8 +216,8 @@ class Mine():
                 x = np.linspace(self.Xmin, self.Xmax, 300)
                 y = np.linspace(self.Ymin, self.Ymax, 300)
                 xs, ys = np.meshgrid(x,y)
-                # t = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
-                t = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+                t = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+                # t = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
                 t = t.reshape(xs.shape[1], ys.shape[0])
                 # ixy = t - np.log(self.ma_et.mean().detach().numpy())
                 heatmap_animation_ax, c = plot_util.getHeatMap(heatmap_animation_ax, xs, ys, t)
@@ -356,8 +354,8 @@ class Mine():
         x = np.linspace(self.Xmin, self.Xmax, 300)
         y = np.linspace(self.Ymin, self.Ymax, 300)
         xs, ys = np.meshgrid(x,y)
-        # z = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
-        z = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+        z = self.mine_net(torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
+        # z = self.mine_net(torch.Tensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))).detach().numpy()
         z = z.reshape(xs.shape[1], ys.shape[0])
         ax[2], c = plot_util.getHeatMap(ax[2], xs, ys, z)
 

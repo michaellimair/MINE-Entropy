@@ -14,3 +14,5 @@ MMI/IC/CMakeFiles/
 Output/
 octave-workspace
 backup/
+*.pt
+*.db
