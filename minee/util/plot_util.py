@@ -48,7 +48,7 @@ def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[]):
     ax.plot(range(1,len(train_loss)+1),train_loss, label='Training')
     if len(valid_loss) > 0:
         ax.plot(range(1,len(valid_loss)+1),valid_loss,label='Validation')
-    if type(ground_truth)==float:
+    if type(ground_truth)==float or type(ground_truth)==np.float64:
         ax.plot(range(1,len(train_loss)+1), ground_truth*np.ones(len(train_loss)),label='ground truth')
     if show_min:
         # find position of lowest validation loss
