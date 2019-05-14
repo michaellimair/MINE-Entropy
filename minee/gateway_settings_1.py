@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 24
+cpu = 48
 batch_size=50
 lr = 1e-3
 moving_average_rate = 0.1
@@ -22,7 +22,7 @@ hidden_size = 100
 
 pop_batch = [
     # (200, 50), 
-    # (200, 100), 
+    (200, 100), 
     (200, 200)
     ]
 
@@ -51,33 +51,33 @@ model = {
     #         verbose=False
     #     ), 
     #     'color': 'purple'
-    },
-    'MINE_hidden=100': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False
-        ),
-        'color': 'orange'
-    },
-    # 'MINE_hidden=300': {
+    # },
+    # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
     #         batch_size=batch_size,
     #         ma_rate=moving_average_rate,
-    #         hidden_size=hidden_size*3,
+    #         hidden_size=hidden_size,
     #         snapshot=snapshot,
     #         iter_num=iter_num,
     #         log=True,
     #         verbose=False
     #     ),
-    #     'color': 'magenta'
+    #     'color': 'orange'
     # },
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False
+        ),
+        'color': 'magenta'
+    },
 }
 
 sample_size = 200

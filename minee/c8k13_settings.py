@@ -21,9 +21,9 @@ moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    # (200, 50), 
+    (200, 50), 
     # (200, 100), 
-    (200, 200)
+    # (200, 200)
     ]
 
 iter_num = int(5e2)
@@ -40,31 +40,31 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    # 'MINEE': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False
-    #     ), 
-    #     'color': 'purple'
-    },
-    'MINE_hidden=100': {
-        'model': Mine(
+    'MINEE': {
+        'model': Minee(
             lr=lr, 
             batch_size=batch_size,
-            ma_rate=moving_average_rate,
             hidden_size=hidden_size,
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
             verbose=False
-        ),
-        'color': 'orange'
+        ), 
+        'color': 'purple'
     },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False
+    #     ),
+    #     'color': 'orange'
+    # },
     # 'MINE_hidden=300': {
     #     'model': Mine(
     #         lr=lr, 

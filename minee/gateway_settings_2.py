@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 96
+cpu = 45
 batch_size=50
 lr = 1e-3
 moving_average_rate = 0.1
@@ -102,44 +102,44 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    '20-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(20).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # 'Mixed Gaussian': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
+    # '20-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(20).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     'Mixed Uniform': {
         'model': MixedUniform, 
         'kwargs': [

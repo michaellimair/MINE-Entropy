@@ -179,8 +179,9 @@ def run_experiment():
     experiment_path = os.path.join(settings.output_path, experiment_name)
     while True:
         if os.path.exists(experiment_path):
-            experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
-            experiment_path = os.path.join(settings.output_path, experiment_name)
+            # experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
+            # experiment_path = os.path.join(settings.output_path, experiment_name)
+            break
         else:
             os.makedirs(experiment_path)
             print('Output will be saved into {}'.format(experiment_path))

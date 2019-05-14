@@ -12,8 +12,8 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import torch
 
-from . import c8k18_settings as settings
-settings_file = "c8k18_settings.py"
+from . import c8k13_settings as settings
+settings_file = "c8k13_settings.py"
 
 def saveResultsFig(results_dict, experiment_path=""):
     """

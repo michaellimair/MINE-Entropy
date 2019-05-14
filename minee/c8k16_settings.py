@@ -1,7 +1,6 @@
 from .model.linear_regression import LinearReg
 from .model.mine import Mine
-from .model.mine_entropy import Mine_ent
-from .model.mine_multitask import MineMultiTask
+from .model.minee import Minee
 from .model.kraskov import Kraskov
 from .model.cart_regression import cartReg
 
@@ -13,21 +12,25 @@ from .data.uniform_mmi import UniformMMI
 import math
 import os
 from datetime import datetime
+import numpy as np
 
 cpu = 24
-batch_size=64
-patience=int(250)
+batch_size=50
 lr = 1e-3
-moving_average_rate = 1
+moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (512, 32), 
-    (2048, 32)
+    (200, 50), 
+    # (200, 100), 
+    # (200, 200)
     ]
 
-iter_num = int(1e5)
-snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+iter_num = int(5e2)
+record_rate = int(250)
+# snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+# snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
+snapshot = list(range(record_rate, iter_num, record_rate))
 video_frames=int(0)
 # snapshot = [i for i in range(0, iter_num, 100)]
 
@@ -37,93 +40,65 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    # 'MINE_direct_hidden_X_2': {
-    #     'model': Mine(
+    # 'MINEE': {
+    #     'model': Minee(
     #         lr=lr, 
-    #         batch_size=batch_size,  
-    #         patience=patience, 
-    #         iter_num=iter_num, 
-    #         log_freq=int(100), 
-    #         avg_freq=int(1), 
-    #         ma_rate=moving_average_rate, 
-    #         verbose=False,
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
     #         log=True,
-    #         sample_mode='marginal',
-    #         earlyStop=False,
-    #         hidden_size=hidden_size*2,
-    #         iter_snapshot=snapshot,
-    #         video_frames=video_frames
+    #         verbose=False
     #     ), 
-    #     'color': 'magenta'
+    #     'color': 'purple'
     # },
-    'MINE_multi_task': {
-        'model': MineMultiTask(
-            lr=lr, 
-            batch_size=batch_size,  
-            ref_size=batch_size,
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(1), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='unif',
-            earlyStop=False,
-            add_mar=True,
-            hidden_size=hidden_size,
-            iter_snapshot=snapshot,
-            video_frames=video_frames
-        ), 
-        'color': 'grey'
-    },
-    'MINE_entropy': {
-        'model': MineMultiTask(
-            lr=lr, 
-            batch_size=batch_size,  
-            ref_size=batch_size,
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(1), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='unif',
-            earlyStop=False,
-            add_mar=False,
-            hidden_size=hidden_size,
-            iter_snapshot=snapshot,
-            video_frames=video_frames
-        ), 
-        'color': 'purple'
-    },
-    'MINE_direct': {
+    'MINE_hidden=100': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size,  
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(1), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='marginal',
-            earlyStop=False,
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
             hidden_size=hidden_size,
-            iter_snapshot=snapshot,
-            video_frames=video_frames
-        ), 
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False
+        ),
         'color': 'orange'
     },
+    # 'MINE_hidden=300': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size*3,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False
+    #     ),
+    #     'color': 'magenta'
+    # },
 }
 
-# sample_size = 6400
-sample_size = batch_size * 20
-rhos = [ 0, 0.2, 0.6 ,0.8, 0.9, 0.99 ]
-# rhos = [0.999]
-widths = list(range(2, 12, 4))
+sample_size = 200
+rhos = [ 
+    0, 
+    0.2, 
+    0.4, 
+    0.6, 
+    0.8, 
+    0.9, 
+    0.95, 
+    0.99 
+    ]
+# rhos = [0.9]
+widths = [
+    2,
+    4,
+    6,
+    8,
+    10
+]
 
 
 data = {
@@ -146,27 +121,38 @@ data = {
         'kwargs': [
             {
                 'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
                 'rho': rho,
+                'mean':[0,0], 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    'Mixed Uniform': {
-        'model': MixedUniform, 
+    '20-Dimension Gaussian': {
+        'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
-                'width_a': width, 
-                'width_b': width, 
-                'mix': 0.5
-            } for width in widths
+                'rho': rho,
+                'mean':np.zeros(20).tolist(), 
+            } for rho in rhos
         ], 
-        'varying_param_name': 'width_a', 
-        'x_axis_name': 'width'
-    }, 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
+    # 'Mixed Uniform': {
+    #     'model': MixedUniform, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'width_a': width, 
+    #             'width_b': width, 
+    #             'mix': 0.5
+    #         } for width in widths
+    #     ], 
+    #     'varying_param_name': 'width_a', 
+    #     'x_axis_name': 'width'
+    # }, 
     # {
     #     'name': 'Examples', 
     #     'model': XX(
