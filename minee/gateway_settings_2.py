@@ -26,8 +26,8 @@ pop_batch = [
     (200, 200)
     ]
 
-iter_num = int(5e2)
-record_rate = int(250)
+iter_num = int(1e6)
+record_rate = int(1000)
 # snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
 # snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
 snapshot = list(range(record_rate, iter_num, record_rate))
