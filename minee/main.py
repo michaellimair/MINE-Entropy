@@ -78,22 +78,22 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     if not os.path.exists(prefix_name_loop):
         os.makedirs(prefix_name_loop, exist_ok=True)
     
-    if X_train.shape[1]==1:
-        #Plot Ground Truth MI
-        fig, ax = plt.subplots(figsize=(15, 15))
-        Xmax = max(X_train)
-        Xmin = min(X_train)
-        Ymax = max(Y_train)
-        Ymin = min(Y_train)
-        x = np.linspace(Xmin, Xmax, 300)
-        y = np.linspace(Ymin, Ymax, 300)
-        xs, ys = np.meshgrid(x,y)
-        ax, c = data_model.plot_i(ax, xs, ys)
-        fig.colorbar(c, ax=ax)
-        ax.set_title("i(X;Y)")
-        figName = os.path.join(prefix_name_loop, "i_XY")
-        fig.savefig(figName, bbox_inches='tight')
-        plt.close()
+    # if X_train.shape[1]==1:
+    #     #Plot Ground Truth MI
+    #     fig, ax = plt.subplots(figsize=(15, 15))
+    #     Xmax = max(X_train)
+    #     Xmin = min(X_train)
+    #     Ymax = max(Y_train)
+    #     Ymin = min(Y_train)
+    #     x = np.linspace(Xmin, Xmax, 300)
+    #     y = np.linspace(Ymin, Ymax, 300)
+    #     xs, ys = np.meshgrid(x,y)
+    #     ax, c = data_model.plot_i(ax, xs, ys)
+    #     fig.colorbar(c, ax=ax)
+    #     ax.set_title("i(X;Y)")
+    #     figName = os.path.join(prefix_name_loop, "i_XY")
+    #     fig.savefig(figName, bbox_inches='tight')
+    #     plt.close()
 
 
     # Fit Algorithm
