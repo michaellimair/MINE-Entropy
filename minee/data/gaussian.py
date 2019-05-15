@@ -28,11 +28,13 @@ class Gaussian():
         if dim%2 == 1:
             raise ValueError("dimension of gaussian is assummed to be even")
         len_X = dim//2
-        cov = np.identity(dim)+self.rho*np.identity(dim)[::-1]
-        I_XY =  0.5*np.log(np.linalg.det(cov[0:len_X,0:len_X])) + 0.5*np.log(np.linalg.det(cov[-len_X:,-len_X:])) - 0.5*np.log(np.linalg.det(cov)) 
+        return -0.5*np.log(1-self.rho**2)*len_X
+        # cov = np.identity(dim)+self.rho*np.identity(dim)[::-1]
+        # I_XY =  0.5*np.log(np.linalg.det(cov[0:len_X,0:len_X])) + 0.5*np.log(np.linalg.det(cov[-len_X:,-len_X:])) - 0.5*np.log(np.linalg.det(cov)) 
         
-        return I_XY
-        # return 0.5*len(self.mean)*np.log(2*np.pi*np.e)-0.5*np.log(np.linalg.det(cov))
+        # return 0.5*len(self.mean)*np.log(2*np.pi*np.e)-0.5*np.log
+
+        # (np.linalg.det(cov))
         # return -0.5*np.log(1-self.rho**2)
         # covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
         # def fxy(x,y):

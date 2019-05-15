@@ -8,7 +8,7 @@ import copy
 import dill
 from ..util import plot_util
 from ..util import torch_util
-from ..util.random_util import resample, uniform_sample
+from ..util.random_util import resample
 
 # from ..utils import save_train_curve
 import matplotlib
@@ -70,8 +70,8 @@ class Mine():
         self.Test_X = Test_X
         self.Test_Y = Test_Y
         # For MI estimate
-        Train_X_ref = uniform_sample(Train_X.min(axis=0),Train_X.max(axis=0),Train_X.shape[0])
-        Train_Y_ref = uniform_sample(Train_Y.min(axis=0),Train_Y.max(axis=0),Train_Y.shape[0])
+        Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
+        Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
 
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
 
@@ -137,9 +137,10 @@ class Mine():
         fXY = self.XY_net(batch_XY)
         efXY_ref = torch.exp(self.XY_net(batch_XY_ref))
         ma_ef = (1-self.ma_rate)*ma_ef + self.ma_rate*torch.mean(efXY_ref)
-        batch_dXY = torch.mean(fXY) - (1/ma_ef.mean()).detach()*torch.mean(efXY_ref)
-        batch_loss_XY = -batch_dXY
-        batch_loss_XY.backward()
+        batch_dXY = -(torch.mean(fXY) - (1/ma_ef.mean()).detach()*torch.mean(efXY_ref))
+        batch_dXY.backward()
+        # batch_loss_XY = -batch_dXY
+        # batch_loss_XY.backward()
         self.XY_optimizer.step()
 
     def get_estimate(self, X, Y):
