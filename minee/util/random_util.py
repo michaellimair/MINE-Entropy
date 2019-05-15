@@ -1,4 +1,6 @@
 import numpy as np
+random_seed = 0
+np.random.seed(seed=random_seed)
 
 def resample(data,batch_size,replace=False):
     index = np.random.choice(range(data.shape[0]), size=batch_size, replace=replace)

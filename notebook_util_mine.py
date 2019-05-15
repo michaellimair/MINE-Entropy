@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+random_seed = 0
+torch.manual_seed(seed=random_seed)
 
 # Use GPU when available
 # Need to use Tensor to create the tensor of default type

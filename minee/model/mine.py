@@ -1,8 +1,21 @@
+random_seed = 0
+import numpy as np
+np.random.seed(seed=random_seed)
 import torch
+torch.manual_seed(seed=random_seed)
+
+# Use GPU when available
+# Need to use Tensor to create the tensor of default type
+if torch.cuda.is_available():
+    torch.set_default_tensor_type(torch.cuda.FloatTensor)
+else:
+    torch.set_default_tensor_type(torch.FloatTensor)
+
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
+# import numpy as np
 import os
 import copy
 import dill
@@ -36,7 +49,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -48,6 +61,7 @@ class Mine():
         self.prefix = prefix
         self.ground_truth = ground_truth
         self.verbose = verbose
+        self.full_ref = full_ref
 
     def fit(self, Train_X, Train_Y, Test_X, Test_Y):
         if self.log:
@@ -63,22 +77,42 @@ class Mine():
             log.write("prefix={0}\n".format(self.prefix))
             log.write("ground_truth={0}\n".format(self.ground_truth))
             log.write("verbose={}\n".format(self.verbose))
+            log.write("full_ref={}\n".format(self.full_ref))
             log.close()
 
         self.Train_X = Train_X
         self.Train_Y = Train_Y
         self.Test_X = Test_X
         self.Test_Y = Test_Y
-        # For MI estimate
-        Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
-        Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
 
+        # For MI estimate
+        if self.full_ref:
+            Train_X_ref, Train_Y_ref = np.meshgrid(Train_X, Train_Y)
+            Train_X_ref = Train_X_ref.flatten()[:,None]
+            Train_Y_ref = Train_Y_ref.flatten()[:,None]
+        else:
+            Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
+            Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
+
+        # Plot data and ref for MI estimate
+        plt.scatter(Train_X,Train_Y)
+        plt.scatter(Train_X_ref,Train_Y_ref,label="ref",marker="_",color="darkorange")
+        plt.scatter(Train_X,Train_Y,label="data",marker="+",color="steelblue")
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Plot of all data samples and reference samples')
+        plt.legend()
+        figName = os.path.join(self.prefix, "Data and Reference in MI estimate.png")
+        plt.savefig(figName)
+        plt.close()
+
+        self.XY_t = torch.Tensor(np.concatenate((Train_X,Train_Y),axis=1))
 
         self.XY_net = MineNet(input_size=Train_X.shape[1]+Train_Y.shape[1],hidden_size=self.hidden_size)
         self.XY_optimizer = optim.Adam(self.XY_net.parameters(),lr=self.lr)
 
-        ma_ef = 1
+        self.ma_ef = 1
 
         XY_net_list = []
 
@@ -97,7 +131,7 @@ class Mine():
         else:
             snapshot_i = 0
             for i in range(self.iter_num):
-                self.update_mine_net(Train_X, Train_Y, self.batch_size, ma_ef)
+                self.update_mine_net(Train_X, Train_Y, self.batch_size, self.ma_rate)
                 Train_dXY = self.get_estimate(Train_X, Train_Y)
                 self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY)
 
@@ -128,16 +162,16 @@ class Mine():
 
 
 
-    def update_mine_net(self, Train_X, Train_Y, batch_size, ma_ef):
-        XY_t = torch.Tensor(np.concatenate((Train_X,Train_Y),axis=1))
+    def update_mine_net(self, Train_X, Train_Y, batch_size, ma_rate):
         self.XY_optimizer.zero_grad()
-        batch_XY = resample(XY_t,batch_size=batch_size)
+        batch_XY = resample(self.XY_t,batch_size=batch_size)
         batch_XY_ref = torch.Tensor(np.concatenate((resample(Train_X,batch_size=batch_size),                                                         resample(Train_Y,batch_size=batch_size)),axis=1))
 
         fXY = self.XY_net(batch_XY)
         efXY_ref = torch.exp(self.XY_net(batch_XY_ref))
-        ma_ef = (1-self.ma_rate)*ma_ef + self.ma_rate*torch.mean(efXY_ref)
-        batch_dXY = -(torch.mean(fXY) - (1/ma_ef.mean()).detach()*torch.mean(efXY_ref))
+        batch_dXY = torch.mean(fXY) - torch.log(torch.mean(efXY_ref))
+        self.ma_ef = (1-ma_rate)*self.ma_ef + ma_rate*torch.mean(efXY_ref)
+        batch_dXY = -(torch.mean(fXY) - (1/self.ma_ef.mean()).detach()*torch.mean(efXY_ref))
         batch_dXY.backward()
         # batch_loss_XY = -batch_dXY
         # batch_loss_XY.backward()

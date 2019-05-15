@@ -63,7 +63,8 @@ model = {
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
-            verbose=False
+            verbose=False,
+            full_ref=True
         ),
         'color': 'orange'
     },
@@ -76,7 +77,8 @@ model = {
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
-            verbose=False
+            verbose=False,
+            full_ref=True
         ),
         'color': 'magenta'
     },

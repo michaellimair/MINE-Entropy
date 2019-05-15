@@ -1,3 +1,9 @@
+import numpy as np
+random_seed = 0
+np.random.seed(seed=random_seed)
+import torch
+# torch.manual_seed(seed=random_seed)
+
 from .model.linear_regression import LinearReg
 from .model.mine import Mine
 from .model.minee import Minee
@@ -12,7 +18,7 @@ from .data.uniform_mmi import UniformMMI
 import math
 import os
 from datetime import datetime
-import numpy as np
+
 
 cpu = 1
 batch_size=50
@@ -20,13 +26,14 @@ lr = 1e-3
 moving_average_rate = 0.1
 hidden_size = 100
 
+
 pop_batch = [
     # (200, 50), 
     # (200, 100), 
     (200, 200)
     ]
 
-iter_num = int(5e3)
+iter_num = int(1e4)
 record_rate = int(250)
 # snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
 # snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
@@ -52,32 +59,33 @@ model = {
     #     ), 
     #     'color': 'purple'
     # },
-    'MINE_hidden=100': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False
-        ),
-        'color': 'orange'
-    },
-    # 'MINE_hidden=300': {
+    # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
     #         batch_size=batch_size,
     #         ma_rate=moving_average_rate,
-    #         hidden_size=hidden_size*3,
+    #         hidden_size=hidden_size,
     #         snapshot=snapshot,
     #         iter_num=iter_num,
     #         log=True,
     #         verbose=False
     #     ),
-    #     'color': 'magenta'
+    #     'color': 'orange'
     # },
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            full_ref=True
+        ),
+        'color': 'magenta'
+    },
 }
 
 sample_size = 200
@@ -102,20 +110,20 @@ widths = [
 
 
 data = {
-    # 'Mixed Gaussian': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':0, 
-    #             'mean2':0, 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    'Mixed Gaussian': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':0, 
+                'mean2':0, 
+                'rho1': rho, 
+                'rho2': -rho,
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [
@@ -128,18 +136,18 @@ data = {
     #     'varying_param_name': 'rho', 
     #     'x_axis_name': 'correlation', 
     # },
-    '20-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(40).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # '20-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(40).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [

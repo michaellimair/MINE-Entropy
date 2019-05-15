@@ -187,12 +187,12 @@ def run_experiment():
         else:
             os.makedirs(experiment_path)
             print('Output will be saved into {}'.format(experiment_path))
-            # save the settings
-            from shutil import copyfile
-            mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-            settings_path = os.path.join(mmi_dir_path, settings_file)
-            copyfile(settings_path, os.path.join(experiment_path, settings_file))
-            break     
+            break   
+    # save the settings
+    from shutil import copyfile
+    mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
+    settings_path = os.path.join(mmi_dir_path, settings_file)
+    copyfile(settings_path, os.path.join(experiment_path, settings_file))  
     plot(experiment_path)
 
 if __name__ == "__main__":
