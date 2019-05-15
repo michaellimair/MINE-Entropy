@@ -9,8 +9,8 @@ else:
     torch.set_default_tensor_type(torch.FloatTensor)
     
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -58,3 +58,5 @@ def plot_net_2(net, Xmin=-5, Xmax=5, Ymin=-5, Ymax=5, Xgrids=100, Ygrids=100):
 import copy
 
 from ipywidgets import interact
+
+from IPython import display
