@@ -11,12 +11,12 @@ class MixedGaussian():
     # Mode[0] separation between the two bivariate gaussians along the x-axis and Mode[1] is the separation along the y-axis
     #
     # Adapated from Ali
-    def __init__(self, n_samples=400, mean1=0, mean2=0, rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
-        self.n_samples = n_samples
+    def __init__(self, sample_size=400, mean1=0, mean2=0, rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
+        self.sample_size = sample_size
         R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
         covMat1 = np.array([[1,rho1],[rho1,1]])
         covMat2 = np.array([[1,rho2],[rho2,1]])
-        self.n_samples = n_samples
+        self.sample_size = sample_size
         self.mix = mix
         self.covMat1 = np.matmul(np.matmul(R,covMat1), R.transpose())
         self.covMat2 = np.matmul(np.matmul(R,covMat2), R.transpose())
@@ -30,8 +30,8 @@ class MixedGaussian():
         Returns:
             [np.array] -- [N by 2 matrix]
         """
-        N1 = int(self.mix*self.n_samples)
-        N2 = self.n_samples-N1
+        N1 = int(self.mix*self.sample_size)
+        N2 = self.sample_size-N1
         temp1 = np.random.multivariate_normal(mean=self.mu,
                                     cov=self.covMat1,
                                     size = N1)
@@ -80,6 +80,16 @@ class MixedGaussian():
         # return [hx[0] + hy[0] - hxy[0], isReliable, hx[0], hy[0]]
 
     def plot_i(self, ax, xs, ys):
+        i_ = [self.I(xs[i,j], ys[i,j]) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
+        i_ = i_[:-1, :-1]
+        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
+        # set the limits of the plot to the limits of the data
+        ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
+        return ax, c
+
+    def I(self, x,y):
         mix, covMat1, covMat2, mu = self.mix, self.covMat1, self.covMat2, self.mu
         def fxy(x,y):
             X = np.array([x, y])
@@ -96,15 +106,7 @@ class MixedGaussian():
             return mix*np.exp(-(y-mu[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
                     + (1-mix)*np.exp(-(y+mu[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
 
-        i_ = [np.log(fxy(xs[i,j], ys[i,j])/(fx(xs[i,j])*fy(ys[i,j]))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        # i = [xlogy(fxy(xs[i,j], ys[i,j]),fxy(xs[i,j], ys[i,j]))-xlogy(fx(xs[i,j]),fx(xs[i,j]))-xlogy(fy(ys[i,j]),fy(ys[i,j])) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
-        i_ = i_[:-1, :-1]
-        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
-        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
-        # set the limits of the plot to the limits of the data
-        ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
-        return ax, c
+        return np.log(fxy(x, y)/(fx(x)*fy(y)))
 
 if __name__ == '__main__':
     # data = BiModal().data
