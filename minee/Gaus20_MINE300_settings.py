@@ -80,8 +80,8 @@ model = {
             verbose=False,
             full_ref=True
         ),
-    #     'color': 'magenta'
-    # },
+        'color': 'magenta'
+    },
 }
 
 sample_size = 200
