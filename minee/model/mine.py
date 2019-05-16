@@ -85,11 +85,15 @@ class Mine():
         self.Test_X = Test_X
         self.Test_Y = Test_Y
 
-        # For MI estimate
+        # For MI estimate but fail for high-dim 
         if self.full_ref:
-            Train_X_ref, Train_Y_ref = np.meshgrid(Train_X, Train_Y)
-            Train_X_ref = Train_X_ref.flatten()[:,None]
-            Train_Y_ref = Train_Y_ref.flatten()[:,None]
+            Train_X_ref, Train_Y_ref = np.meshgrid(Train_X, Train_Y.T)
+            if len(Train_X.shape)==1:
+                Train_X_ref = Train_X_ref.flatten()[:,None]
+                Train_Y_ref = Train_Y_ref.flatten()[:,None]
+            elif len(Train_X.shape)==2:
+                Train_X_ref = Train_X_ref[:Train_X.shape[0],:].reshape((Train_X.shape[0]**2), Train_X.shape[1])
+                Train_Y_ref = Train_Y_ref[:,:Train_X.shape[0]].reshape(Train_X.shape[1], (Train_X.shape[0]**2)).T
         else:
             Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
             Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
