@@ -2,9 +2,9 @@ import numpy as np
 from numpy.random import uniform as unif
 
 class UniformMMI():
-    def __init__(self, n_samples, n_variables=3, low=0.0, high=1.0, varValue=0):
+    def __init__(self, sample_size, n_variables=3, low=0.0, high=1.0, varValue=0):
         self.n_variables = int(n_variables)
-        self.n_samples = int(n_samples)
+        self.sample_size = int(sample_size)
         self.low = low
         self.high = high
 
@@ -19,10 +19,10 @@ class UniformMMI():
             [np array] -- [n_sample by n_variables matrix]
         """
 
-        if self.n_variables < 2 or self.n_samples < 1:
+        if self.n_variables < 2 or self.sample_size < 1:
             raise ValueError
         else:
-            x = unif(self.low, self.high, self.n_samples*(self.n_variables-1)).reshape(self.n_samples, self.n_variables-1)
+            x = unif(self.low, self.high, self.sample_size*(self.n_variables-1)).reshape(self.sample_size, self.n_variables-1)
             x = np.append(x, np.remainder(np.sum(x, axis=1),1)[:,None],axis=1)
             return x
             

@@ -3,15 +3,15 @@ from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
 class MixedUniform():
-    def __init__(self, mix, width_a, width_b, n_samples):
-        self.mix, self.width_a, self.width_b, self.n_samples = mix, width_a, width_b, n_samples
+    def __init__(self, mix, width_a, width_b, sample_size):
+        self.mix, self.width_a, self.width_b, self.sample_size = mix, width_a, width_b, sample_size
 
     @property
     def data(self):
         mix, a, b = self.mix, self.width_a, self.width_b
-        N1 = int(mix*self.n_samples)
+        N1 = int(mix*self.sample_size)
         temp1 = np.array([[np.random.uniform(-.5*a,.5*a,N1)], [np.random.uniform(-.5/a,.5/a,N1)]]).T.reshape(N1,2)
-        N2 = self.n_samples-N1
+        N2 = self.sample_size-N1
         temp2 = np.array([[np.random.uniform(-.5/b,.5/b,N2)], [np.random.uniform(-.5*b,.5*b,N2)]]).T.reshape(N2,2)
         #return np.append(temp1,temp2,axis = 0) 
         temp  = np.append(temp1,temp2,axis = 0) 
@@ -50,6 +50,18 @@ class MixedUniform():
         return mi
 
     def plot_i(self, ax, xs, ys):
+
+        i_ = [self.I(xs[i,j],y[i,j]) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        # i = [xlogy(fxy(xs[i,j], ys[i,j], mix, a, 1/a, 1/b, b),fxy(xs[i,j], ys[i,j], mix, a, 1/a, 1/b, b))-xlogy(fx(xs[i,j], mix, a, 1/b),fx(xs[i,j], mix, a, 1/b))-xlogy(fx(ys[i,j], mix, 1/a, b),fx(ys[i,j], mix, 1/a, b)) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
+        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
+        i_ = i_[:-1, :-1]
+        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
+        # set the limits of the plot to the limits of the data
+        ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
+        return ax, c
+
+    def I(self, x, y):
         def fx(x, mix_1, w_1_x, w_2_x):
             p = 0
             if abs(x) <= .5*w_1_x:
@@ -68,16 +80,7 @@ class MixedUniform():
 
         mix, a, b = self.mix, self.width_a, self.width_b
 
-        i_ = [np.log(fxy(xs[i,j], ys[i,j], mix, a, 1/a, 1/b, b)/(fx(xs[i,j], mix, a, 1/b)*fx(ys[i,j], mix, 1/a, b))) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        # i = [xlogy(fxy(xs[i,j], ys[i,j], mix, a, 1/a, 1/b, b),fxy(xs[i,j], ys[i,j], mix, a, 1/a, 1/b, b))-xlogy(fx(xs[i,j], mix, a, 1/b),fx(xs[i,j], mix, a, 1/b))-xlogy(fx(ys[i,j], mix, 1/a, b),fx(ys[i,j], mix, 1/a, b)) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
-        i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
-        i_ = i_[:-1, :-1]
-        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
-        c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
-        # set the limits of the plot to the limits of the data
-        ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
-        return ax, c
-
+        return np.log(fxy(x, y, mix, a, 1/a, 1/b, b)/(fx(x, mix, a, 1/b)*fx(y, mix, 1/a, b)))
 
 if __name__ == '__main__':
     unif=MixedUniform(0.5, 10, 10, 200)
