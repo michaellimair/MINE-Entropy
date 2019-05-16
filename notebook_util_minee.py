@@ -9,8 +9,9 @@ else:
     torch.set_default_tensor_type(torch.FloatTensor)
     
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 mpl.use('Agg')
+import matplotlib.pyplot as plt
+
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -40,7 +41,6 @@ class Net(nn.Module):
 from torch import optim
 
 import os
-import dill
 
 import copy
 from ipywidgets import interact
@@ -67,3 +67,5 @@ def plot_net_2(net, Xmin=-5, Xmax=5, Ymin=-5, Ymax=5, Xgrids=100, Ygrids=100):
     xy = np.concatenate((x[:,:,None],y[:,:,None]),axis=2)
     z = net(torch.Tensor(xy))[:,:,0].detach().cpu()
     plt.pcolormesh(x, y, z, cmap='RdBu_r')
+    
+from IPython import display
