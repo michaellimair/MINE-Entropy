@@ -15,7 +15,7 @@ from minee.data.mix_gaussian import MixedGaussian
 np.random.seed(0)
 sample_size = 200
 rho1 = 0.9
-data = MixedGaussian(n_samples=sample_size,rho1=rho1).data
+data = MixedGaussian(sample_size=sample_size,rho1=rho1).data
 data_t = torch.Tensor(data)
 
 #%% [markdown]
