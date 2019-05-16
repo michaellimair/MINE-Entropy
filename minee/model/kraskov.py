@@ -32,28 +32,3 @@ class Kraskov():
                                       discrete_features=self.discrete_features, 
                                       n_neighbors=self.n_neighbors, 
                                       random_state=self.random_state)[0]
-
-    def predict_Cond_Entropy(self, X):
-        from ..MMI.IC.AIC import TableEntropy
-        from ..utils import mseEntropy, varEntropy, unifEntropy, ShannonEntropy
-        n_var = X.shape[1]
-        numCond = 2**(n_var-1)
-        cond_ent = np.zeros((n_var, numCond))
-        for Resp in range(n_var):
-            cond_ent[Resp, 0] = ShannonEntropy(X[:,Resp])
-            for sI in range(1, numCond):
-                subset = TableEntropy.subsetVector(n_var - 1, sI)
-                subset = np.array(subset)
-                cond = []
-                for element in subset:
-                    if element >= Resp:
-                        element += 1
-                    cond.append(int(element))
-                # self.savefig()
-                cond_ent[Resp, sI] = cond_ent[Resp, 0] - mutual_info_regression(
-                                    X=X[:, cond], 
-                                    y=X[:, Resp], 
-                                    discrete_features=self.discrete_features, 
-                                    n_neighbors=self.n_neighbors, 
-                                    random_state=self.random_state)[0]
-        return cond_ent

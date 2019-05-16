@@ -1,18 +1,12 @@
-from .model.linear_regression import LinearReg
-from .model.mine import Mine
-from .model.mine_entropy import Mine_ent
-from .model.mine_multitask import MineMultiTask
-from .model.kraskov import Kraskov
-from .model.cart_regression import cartReg
-# from .model.jackknife import Jackknife
+import numpy as np
+random_seed = 0
+np.random.seed(seed=random_seed)
+import torch
+# torch.manual_seed(seed=random_seed)
 
-# from .model.ShannonKDE import ShanKDE
-# from .model.hellingerDiv import hellingerDiv
-# from .model.tsallisDiv import tsallisDiv
-# from .model.chiSqDiv import chiSqDiv
-# from .model.renyiDiv import renyiDiv
-# from .model.klDiv import klDiv
-# from .model.condShannonEntropy import condShanEnt
+from .model.mine import Mine
+from .model.minee import Minee
+from .model.kraskov import Kraskov
 
 
 from .data.mix_gaussian import MixedGaussian
@@ -23,14 +17,27 @@ import math
 import os
 from datetime import datetime
 
-cpu = 70
 
-batch_size=32
-patience=int(1000)
-iter_num=int(1e+9)
+cpu = 1
+batch_size=50
 lr = 1e-3
-moving_average_rate = 0.01
+moving_average_rate = 0.1
 hidden_size = 100
+
+
+pop_batch = [
+    # (200, 50), 
+    # (200, 100), 
+    (200, 200)
+    ]
+
+iter_num = int(1e3)
+record_rate = int(250)
+# snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
+# snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
+snapshot = list(range(record_rate, iter_num, record_rate))
+video_frames=int(0)
+# snapshot = [i for i in range(0, iter_num, 100)]
 
 
 time_now = datetime.now()
@@ -38,207 +45,67 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-     'Linear Regression': {  # model name, for plotting the legend
-         'model': LinearReg(  # initialize the object
-             cvFold=3
-         ), 
-         'color': 'blue'  # for plotting
-     }, 
-     'Kraskov': {
-         'model': Kraskov(
-             discrete_features='auto', 
-             n_neighbors=3, 
-             random_state=None
-         ), 
-         'color': 'green'
-     }, 
-    # 'LOO Shannon KDE': {
-    #     'model': ShanKDE(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'magenta'
-    # },
-    # 'LOO hellingerDiv': {
-    #     'model': hellingerDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'cyan'
-    # }, 
-    # 'LOO tsallisDiv': {
-    #     'model': tsallisDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'yellow'
-    # }, 
-    # 'LOO chiSqDiv': {
-    #     'model': chiSqDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'black'
-    # }, 
-    # 'LOO renyiDiv': {
-    #     'model': renyiDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'green'
-    # }, 
-    # 'LOO klDiv': {
-    #     'model': klDiv(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'orange'
-    # }, 
-    # 'LOO condShanEnt': {
-    #     'model': condShanEnt(
-    #         numPart='loo', 
-    #         numAvgPart=1, 
-    #         correctBound=False, 
-    #         Low=1e-5, 
-    #         Upp=math.inf, 
-    #         doAsympAnalysis=False,
-    #         alpha=0.5
-    #     ), 
-    #     'color': 'pink'
-    # }, 
-    # 'Cart Reg': {
-    #     'model': cartReg(
-    #         cvFold=3
-    #     ), 
-    #     'color': 'pink'
-    # },
-    'MINE_direct_hidden_X_2': {
-        'model': Mine(
+    'MINEE': {
+        'model': Minee(
             lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
+            batch_size=batch_size,
+            hidden_size=hidden_size,
+            snapshot=snapshot,
+            iter_num=iter_num,
             log=True,
-            sample_mode='marginal',
-            earlyStop=False,
-            hidden_size=hidden_size*2
-        ), 
-        'color': 'magenta'
-    },
-    'MINE_multi_task': {
-        'model': MineMultiTask(
-            lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='unif',
-            earlyStop=False,
-            add_mar=True,
-            hidden_size=hidden_size
-        ), 
-        'color': 'grey'
-    },
-    'MINE_entropy': {
-        'model': MineMultiTask(
-            lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
-            log=True,
-            sample_mode='unif',
-            earlyStop=False,
-            add_mar=False,
-            hidden_size=hidden_size
+            verbose=False
         ), 
         'color': 'purple'
     },
-    'MINE_direct': {
+    'MINE_hidden=100': {
         'model': Mine(
             lr=lr, 
-            batch_size=batch_size, 
-            patience=patience, 
-            iter_num=iter_num, 
-            log_freq=int(100), 
-            avg_freq=int(10), 
-            ma_rate=moving_average_rate, 
-            verbose=False,
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size,
+            snapshot=snapshot,
+            iter_num=iter_num,
             log=True,
-            sample_mode='marginal',
-            earlyStop=False,
-            hidden_size=hidden_size
-        ), 
+            verbose=False,
+            full_ref=True
+        ),
         'color': 'orange'
     },
-    # 'MINE_entropy': {
-    #     'model': Mine_ent(
-    #         lr=lr,  
-    #         batch_size=batch_size, 
-    #         patience=patience,
-    #         iter_num=iter_num, 
-    #         log_freq=int(100), 
-    #         avg_freq=int(10), 
-    #         ma_rate=moving_average_rate, 
-    #         verbose=False,
-    #         earlyStop=False
-    #     ), 
-    #     'color': 'purple'
-    # },
-    # 'Jackknife': {
-    #     'model': Jackknife(
-    #         n_sim=5
-    #     ),
-    #     'color': 'brown'
-    # }
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            full_ref=True
+        ),
+        'color': 'magenta'
+    },
 }
 
-# n_samples = 6400
-n_samples = batch_size * 20
-rhos = [0, 0.2, 0.6, 0.8, 0.9, 0.999 ]
-# rhos = [0.999]
-widths = list(range(2, 12, 4))
+sample_size = 200
+rhos = [ 
+    # 0, 
+    # 0.2, 
+    # 0.4, 
+    # 0.6, 
+    # 0.8, 
+    0.9, 
+    # 0.95, 
+    # 0.99 
+    ]
+# rhos = [0.9]
+widths = [
+    2,
+    # 4,
+    # 6,
+    # 8,
+    # 10
+]
 
 
 data = {
@@ -246,7 +113,7 @@ data = {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'mean1':0, 
                 'mean2':0, 
                 'rho1': rho, 
@@ -260,10 +127,21 @@ data = {
         'model': Gaussian, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
-                'mean1':0, 
-                'mean2':0, 
+                'sample_size':sample_size, 
                 'rho': rho,
+                'mean':[0,0], 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
+    '20-Dimension Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':np.zeros(40).tolist(), 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
@@ -273,7 +151,7 @@ data = {
         'model': MixedUniform, 
         'kwargs': [
             {
-                'n_samples':n_samples, 
+                'sample_size':sample_size, 
                 'width_a': width, 
                 'width_b': width, 
                 'mix': 0.5
@@ -285,7 +163,7 @@ data = {
     # {
     #     'name': 'Examples', 
     #     'model': XX(
-    #         n_samples=XX
+    #         sample_size=XX
     #         rho=XX
     #     )
     # }, 

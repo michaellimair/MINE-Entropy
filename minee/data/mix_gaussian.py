@@ -11,12 +11,12 @@ class MixedGaussian():
     # Mode[0] separation between the two bivariate gaussians along the x-axis and Mode[1] is the separation along the y-axis
     #
     # Adapated from Ali
-    def __init__(self, n_samples=400, mean1=0, mean2=0, rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
-        self.n_samples = n_samples
+    def __init__(self, sample_size=400, mean1=0, mean2=0, rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
+        self.sample_size = sample_size
         R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
         covMat1 = np.array([[1,rho1],[rho1,1]])
         covMat2 = np.array([[1,rho2],[rho2,1]])
-        self.n_samples = n_samples
+        self.sample_size = sample_size
         self.mix = mix
         self.covMat1 = np.matmul(np.matmul(R,covMat1), R.transpose())
         self.covMat2 = np.matmul(np.matmul(R,covMat2), R.transpose())
@@ -30,8 +30,8 @@ class MixedGaussian():
         Returns:
             [np.array] -- [N by 2 matrix]
         """
-        N1 = int(self.mix*self.n_samples)
-        N2 = self.n_samples-N1
+        N1 = int(self.mix*self.sample_size)
+        N2 = self.sample_size-N1
         temp1 = np.random.multivariate_normal(mean=self.mu,
                                     cov=self.covMat1,
                                     size = N1)

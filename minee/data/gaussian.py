@@ -3,10 +3,9 @@ from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
 class Gaussian():
-    def __init__(self, n_samples, mean1, mean2, rho, varValue=0):
-        self.n_samples = n_samples
-        self.mean1 = mean1
-        self.mean2 = mean2
+    def __init__(self, sample_size, rho, mean=[0, 0], varValue=0):
+        self.sample_size = sample_size
+        self.mean = mean
         self.rho = rho
 
     @property
@@ -15,15 +14,28 @@ class Gaussian():
         Returns:
             [np array] -- [N by 2 matrix]
         """
-
+        dim = len(self.mean)
+        cov = (np.identity(dim)+self.rho*np.identity(dim)[::-1]).tolist()
         return np.random.multivariate_normal(
-            mean=[self.mean1, self.mean2],
-            cov=[[1, self.rho], [self.rho, 1]], 
-            size=self.n_samples)
+            mean=self.mean,
+            cov=cov, 
+            size=self.sample_size)
 
     @property
     def ground_truth(self):
-        return -0.5*np.log(1-self.rho**2)
+        dim = len(self.mean)
+        # cov = np.array(self.rho)
+        if dim%2 == 1:
+            raise ValueError("dimension of gaussian is assummed to be even")
+        len_X = dim//2
+        return -0.5*np.log(1-self.rho**2)*len_X
+        # cov = np.identity(dim)+self.rho*np.identity(dim)[::-1]
+        # I_XY =  0.5*np.log(np.linalg.det(cov[0:len_X,0:len_X])) + 0.5*np.log(np.linalg.det(cov[-len_X:,-len_X:])) - 0.5*np.log(np.linalg.det(cov)) 
+        
+        # return 0.5*len(self.mean)*np.log(2*np.pi*np.e)-0.5*np.log
+
+        # (np.linalg.det(cov))
+        # return -0.5*np.log(1-self.rho**2)
         # covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
         # def fxy(x,y):
         #     X = np.array([x, y])
@@ -49,7 +61,10 @@ class Gaussian():
         # return hx[0] + hy[0] - hxy[0]
 
     def plot_i(self, ax, xs, ys):
-        covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
+        if len(self.mean)!=2:
+            raise ValueError("Only 2-dimension gaussian can be plotted")
+        # covMat, mu = np.array([[1, self.rho], [self.rho, 1]]), np.array([self.mean1, self.mean2])
+        covMat, mu = np.array(self.rho), np.array(self.mean)
         def fxy(x,y):
             X = np.array([x, y])
             temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose() )
@@ -116,7 +131,7 @@ if __name__ == '__main__':
         rhos.append(rho)
         log_rhos.append(-i)
         # print(rho)
-        gaus=Gaussian(200,0,1,rho)
+        gaus=Gaussian(200,[[1,rho],[rho,1]],[0,0],rho)
         integral.append(gaus.ground_truth)
         eq.append(-0.5*np.log(1-rho*rho))
     fig, axs = plt.subplots(1, 2, figsize=(16*2,9))
