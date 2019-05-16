@@ -32,7 +32,6 @@ class Mine():
     def __init__(self, X, Y, batch_size=32, lr=1e-3, ma_rate=0.1, hidden_size=100, ma_ef = 1):
         self.lr = lr
         self.batch_size = batch_size
-        self.batch_
         self.ma_rate = ma_rate
 
         self.X = torch.Tensor(X)
@@ -70,7 +69,7 @@ class Mine():
         return (torch.mean(self.XY_net(XY)) \
             - torch.log(torch.mean(torch.exp(self.XY_net(XY_ref))))).cpu().item()
 
-    def state_dict():
+    def state_dict(self):
         return {
             'XY_net' : self.XY_net.state_dict(),
             'X' : self.X,
@@ -81,5 +80,11 @@ class Mine():
             'ma_ef' : self.ma_ef
         }
     
-    def load_state_dict(state_dict):
-        
+    def load_state_dict(self,state_dict):
+        self.XY_net.load_state_dict(state_dict['XY_net'])
+        self.X = state_dict['X']
+        self.Y = state_dict['Y']
+        self.lr = state_dict['lr']
+        self.batch_size = state_dict['batch_size']
+        self.ma_rate = state_dict['ma_rate']
+        self.ma_ef = state_dict['ma_ef']
