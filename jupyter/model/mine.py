@@ -34,8 +34,8 @@ class Mine():
         self.batch_size = batch_size
         self.ma_rate = ma_rate
 
-        self.X = torch.Tensor(X)
-        self.Y = torch.Tensor(Y)
+        self.X = X
+        self.Y = Y
         self.XY = torch.cat((self.X,self.Y),dim=1)
         
         self.X_ref = resample(self.X, batch_size=self.X.shape[0])
