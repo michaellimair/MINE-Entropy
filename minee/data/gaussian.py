@@ -14,8 +14,9 @@ class Gaussian():
         Returns:
             [np array] -- [N by 2 matrix]
         """
-        dim = len(self.mean)
-        cov = (np.identity(dim)+self.rho*np.identity(dim)[::-1]).tolist()
+        if len(self.mean)%2 == 1:
+            raise ValueError("length of mean array is assummed to be even")
+        cov = (np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]).tolist()
         return np.random.multivariate_normal(
             mean=self.mean,
             cov=cov, 
@@ -23,12 +24,11 @@ class Gaussian():
 
     @property
     def ground_truth(self):
-        dim = len(self.mean)
         # cov = np.array(self.rho)
-        if dim%2 == 1:
-            raise ValueError("dimension of gaussian is assummed to be even")
-        len_X = dim//2
-        return -0.5*np.log(1-self.rho**2)*len_X
+        if len(self.mean)%2 == 1:
+            raise ValueError("length of mean array is assummed to be even")
+        dim = len(self.mean)//2
+        return -0.5*np.log(1-self.rho**2)*dim
 
     def plot_i(self, ax, xs, ys):
         if len(self.mean)!=2:
@@ -43,21 +43,32 @@ class Gaussian():
         return ax, c
 
     def I(self, x,y):
-        dim = len(self.mean)
         # cov = np.array(self.rho)
-        if dim%2 == 1:
-            raise ValueError("dimension of gaussian is assummed to be even")
-        covMat, mu = (np.identity(dim)+self.rho*np.identity(dim)[::-1]), np.array(self.mean)
+        if len(self.mean)%2 == 1:
+            raise ValueError("length of mean array is assummed to be even")
+        dim = len(self.mean)//2
+        covMat, mu = (np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]), np.array(self.mean)
         def fxy(x,y):
-            X = np.array([x, y])
-            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose() )
+            if type(x)==np.float64 or type(x)==float:
+                X = np.array([x, y])
+            else:
+                X = np.concatenate((x,y))
+            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose())
             return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat))) 
 
         def fx(x):
-            return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0]) 
+            if type(x)==np.float64 or type(x)==float:
+                return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0])
+            else:
+                temp1 = np.matmul(np.matmul(x-mu[0:dim] , np.linalg.inv(covMat[0:dim,0:dim])), (x-mu[0:dim]).transpose())
+                return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat[0:dim,0:dim])))
 
         def fy(y):
-            return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1]) 
+            if type(y)==np.float64 or type(y)==float:
+                return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])*dim
+            else:
+                temp1 = np.matmul(np.matmul(y-mu[-dim:] , np.linalg.inv(covMat[-dim:,-dim:])), (y-mu[-dim:]).transpose())
+                return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat[-dim:,-dim:])))
 
         return np.log(fxy(x, y)/(fx(x)*fy(y)))
 
