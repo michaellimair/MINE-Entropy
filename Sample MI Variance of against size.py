@@ -1,5 +1,3 @@
-
-
 from minee.data.mix_gaussian import MixedGaussian
 from minee.data.mix_uniform import MixedUniform
 from minee.data.gaussian import Gaussian
@@ -108,7 +106,7 @@ for seed in tqdm(random_seeds):
                 axCur.set_xlabel("sample size")
                 axCur.set_ylabel("mean square diff with ground truth")
                 # plt.savefig("{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
-                plt.savefig("/public/hphuang/experiments/var/{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth.png".format(num_sample, dim, rho))
+                plt.savefig("/public/hphuang/experiments/var/{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
                 plt.show()
                 plt.close()
 
@@ -149,7 +147,7 @@ for seed in tqdm(random_seeds):
             axCur.set_xlabel("sample size")
             axCur.set_ylabel("mean square diff with ground truth")
             # plt.savefig("{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
-            plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth.png".format(num_sample, rho))
+            plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
             plt.show()
             plt.close()
 
@@ -190,7 +188,7 @@ for seed in tqdm(random_seeds):
             axCur.set_xlabel("sample size")
             axCur.set_ylabel("mean square diff with ground truth")
             # plt.savefig("{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
-            plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth.png".format(num_sample, width))
+            plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
             plt.show()
             plt.close()
 
