@@ -38,16 +38,18 @@ class MINEE():
             output = self.fc3(output)
             return output
 
-    def __init__(self, X, Y, batch_size=32, lr=1e-3, hidden_size=100):
+    def __init__(self, X, Y, batch_size=32, ref_batch_factor=1, lr=1e-3, hidden_size=100):
         self.lr = lr
         self.batch_size = batch_size
-
+        self.ref_batch_factor = ref_batch_factor
         self.X = X
         self.Y = Y
         self.XY = torch.cat((self.X, self.Y), dim=1)
 
-        self.X_ref = uniform_sample(X, batch_size=X.shape[0])
-        self.Y_ref = uniform_sample(Y, batch_size=Y.shape[0])
+        self.X_ref = uniform_sample(X, batch_size=int(
+            self.ref_batch_factor * X.shape[0]))
+        self.Y_ref = uniform_sample(Y, batch_size=int(
+            self.ref_batch_factor * Y.shape[0]))
 
         self.XY_net = MINEE.Net(
             input_size=X.shape[1]+Y.shape[1], hidden_size=100)
@@ -69,8 +71,10 @@ class MINEE():
         batch_XY = resample(self.XY, batch_size=self.batch_size)
         batch_X = resample(self.X, batch_size=self.batch_size)
         batch_Y = resample(self.Y, batch_size=self.batch_size)
-        batch_X_ref = uniform_sample(self.X, batch_size=self.batch_size)
-        batch_Y_ref = uniform_sample(self.Y, batch_size=self.batch_size)
+        batch_X_ref = uniform_sample(self.X, batch_size=int(
+            self.ref_batch_factor * self.batch_size))
+        batch_Y_ref = uniform_sample(self.Y, batch_size=int(
+            self.ref_batch_factor * self.batch_size))
         batch_XY_ref = torch.cat((batch_X_ref, batch_Y_ref), dim=1)
 
         fXY = self.XY_net(batch_XY)
@@ -100,8 +104,10 @@ class MINEE():
             XY, X, Y = self.XY, self.X, self.Y
         else:
             XY = torch.cat((X, Y), dim=1)
-        X_ref = uniform_sample(X, batch_size=X.shape[0])
-        Y_ref = uniform_sample(Y, batch_size=Y.shape[0])
+        X_ref = uniform_sample(X, batch_size=int(
+            self.ref_batch_factor * X.shape[0]))
+        Y_ref = uniform_sample(Y, batch_size=int(
+            self.ref_batch_factor * Y.shape[0]))
         XY_ref = torch.cat((X_ref, Y_ref), dim=1)
         dXY = (torch.mean(self.XY_net(XY))
                - torch.log(torch.mean(torch.exp(self.XY_net(XY_ref))))).cpu().item()
