@@ -54,34 +54,56 @@ class Gaussian():
             else:
                 X = np.concatenate((x,y))
             temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose())
-            return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat))) 
+            return np.exp(-.5*temp1) / (((2*np.pi)**(dim))* np.sqrt(np.linalg.det(covMat))) 
 
         def fx(x):
             if type(x)==np.float64 or type(x)==float:
                 return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0])
             else:
                 temp1 = np.matmul(np.matmul(x-mu[0:dim] , np.linalg.inv(covMat[0:dim,0:dim])), (x-mu[0:dim]).transpose())
-                return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat[0:dim,0:dim])))
+                return np.exp(-.5*temp1) / (((2*np.pi)**(dim /2))* np.sqrt(np.linalg.det(covMat[0:dim,0:dim])))
 
         def fy(y):
             if type(y)==np.float64 or type(y)==float:
                 return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])*dim
             else:
                 temp1 = np.matmul(np.matmul(y-mu[-dim:] , np.linalg.inv(covMat[-dim:,-dim:])), (y-mu[-dim:]).transpose())
-                return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat[-dim:,-dim:])))
+                return np.exp(-.5*temp1) / (((2*np.pi)**(dim /2))* np.sqrt(np.linalg.det(covMat[-dim:,-dim:])))
 
         return np.log(fxy(x, y)/(fx(x)*fy(y)))
     
     def sum_d(self, x,y):
+        def fxy(x,y, covMat, mu):
+            if type(x)==np.float64 or type(x)==float:
+                X = np.array([x, y])
+            else:
+                raise ValueError("x should be float")
+            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose())
+            return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(1-self.rho**2)) 
+
+        def fx(x, covMat, mu):
+            if type(x)==np.float64 or type(x)==float:
+                return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0])
+            else:
+                raise ValueError("x should be float")
+
+        def fy(y, covMat, mu):
+            if type(y)==np.float64 or type(y)==float:
+                return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])*dim
+            else:
+                raise ValueError("y should be float")
         sum_d_res = []
         dim = len(self.mean)//2
-        realmean = self.mean
         for dim_no in range(0, dim):
             X = x[dim_no]
-            Y = y[dim_no]
-            self.mean = np.zeros(2).tolist() #temporarily modify mean for dimensional pair
-            sum_d_res.append(self.I(X, Y)) 
-        self.mean = realmean #save real mean again
+            Y = y[-dim_no-1]
+            mu = np.array([self.mean[dim_no], self.mean[-dim_no-1]])
+            covMat = (np.identity(2)+self.rho*np.identity(2)[::-1])
+            fxy_ = fxy(X, Y, covMat, mu)
+            fx_ = fx(X, covMat, mu)
+            fy_ = fy(Y, covMat, mu)
+            mi = np.log(fxy_/(fx_*fy_))
+            sum_d_res.append(mi) 
         return np.sum(sum_d_res)
 
 
@@ -130,7 +152,7 @@ if __name__ == '__main__':
         rhos.append(rho)
         log_rhos.append(-i)
         # print(rho)
-        gaus=Gaussian(200,[[1,rho],[rho,1]],[0,0],rho)
+        gaus=Gaussian(200,rho,[0,0],rho)
         integral.append(gaus.ground_truth)
         eq.append(-0.5*np.log(1-rho*rho))
     fig, axs = plt.subplots(1, 2, figsize=(16*2,9))
