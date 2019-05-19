@@ -83,11 +83,10 @@ for seed in tqdm(random_seeds):
                         if dim==1:
                             MI = np.average([MG.I(X[0],X[1]) for X in data])
                         else:
-                            MI = np.average([MG.I(X[0:dim],X[-dim:]) for X in data])
+                            MI = np.average([MG.sum_d(X[0:dim],X[-dim:]) for X in data])
                         diff.append((MI-GT)**2)
                         MIs.append(MI)
                     var.append(np.average(diff))
-
 
 
                 fig, ax = plt.subplots(1,2, figsize=(22, 7))
@@ -105,8 +104,8 @@ for seed in tqdm(random_seeds):
                 axCur.set_title("mean square difference of sample MI with ground truth")
                 axCur.set_xlabel("sample size")
                 axCur.set_ylabel("mean square diff with ground truth")
-                # plt.savefig("{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
-                plt.savefig("/public/hphuang/experiments/var/{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
+                plt.savefig("{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
+                # plt.savefig("/public/hphuang/experiments/var/{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
                 plt.show()
                 plt.close()
 
@@ -124,7 +123,7 @@ for seed in tqdm(random_seeds):
                 for _ in range(num_sample):
                     data = MG.data
                     sample_sizes.append(sample_size[i])
-                    MI = np.average([MG.I(X[0],X[1]) for X in data])
+                    MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
                     diff.append((MI-GT)**2)
                     MIs.append(MI)
                 var.append(np.average(diff))
@@ -146,8 +145,8 @@ for seed in tqdm(random_seeds):
             axCur.set_title("mean square difference of sample MI with ground truth")
             axCur.set_xlabel("sample size")
             axCur.set_ylabel("mean square diff with ground truth")
-            # plt.savefig("{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
-            plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
+            plt.savefig("{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
+            # plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
             plt.show()
             plt.close()
 
@@ -165,7 +164,7 @@ for seed in tqdm(random_seeds):
                 for _ in range(num_sample):
                     data = MG.data
                     sample_sizes.append(sample_size[i])
-                    MI = np.average([MG.I(X[0],X[1]) for X in data])
+                    MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
                     diff.append((MI-GT)**2)
                     MIs.append(MI)
                 var.append(np.average(diff))
@@ -187,8 +186,8 @@ for seed in tqdm(random_seeds):
             axCur.set_title("mean square difference of sample MI with ground truth")
             axCur.set_xlabel("sample size")
             axCur.set_ylabel("mean square diff with ground truth")
-            # plt.savefig("{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
-            plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
+            plt.savefig("{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
+            # plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
             plt.show()
             plt.close()
 
