@@ -41,7 +41,7 @@ class Gaussian():
         # set the limits of the plot to the limits of the data
         ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
         return ax, c
-
+    
     def I(self, x,y):
         # cov = np.array(self.rho)
         if len(self.mean)%2 == 1:
@@ -71,6 +71,18 @@ class Gaussian():
                 return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat[-dim:,-dim:])))
 
         return np.log(fxy(x, y)/(fx(x)*fy(y)))
+    
+    def sum_d(self, x,y):
+        sum_d_res = []
+        dim = len(self.mean)//2
+        realmean = self.mean
+        for dim_no in range(0, dim):
+            X = x[dim_no]
+            Y = y[dim_no]
+            self.mean = np.zeros(2).tolist() #temporarily modify mean for dimensional pair
+            sum_d_res.append(self.I(X, Y)) 
+        self.mean = realmean #save real mean again
+        return np.sum(sum_d_res)
 
 
 
