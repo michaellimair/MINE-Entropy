@@ -97,6 +97,7 @@ class Mine():
             Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
             Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
+        self.XY_ref_t_log_size = float(np.log(Train_X_ref.shape[0]))
 
         # Plot data and ref for MI estimate
         plt.scatter(Train_X,Train_Y)
@@ -172,7 +173,6 @@ class Mine():
 
         fXY = self.XY_net(batch_XY)
         efXY_ref = torch.exp(self.XY_net(batch_XY_ref))
-        batch_dXY = torch.mean(fXY) - torch.log(torch.mean(efXY_ref))
         self.ma_ef = (1-ma_rate)*self.ma_ef + ma_rate*torch.mean(efXY_ref)
         batch_dXY = -(torch.mean(fXY) - (1/self.ma_ef.mean()).detach()*torch.mean(efXY_ref))
         batch_dXY.backward()
@@ -183,7 +183,8 @@ class Mine():
     def get_estimate(self, X, Y):
         XY_t = torch.Tensor(np.concatenate((X,Y),axis=1))
 
-        dXY = torch.mean(self.XY_net(XY_t)) - torch.log(torch.mean(torch.exp(self.XY_net(self.XY_ref_t))))
+        # dXY = torch.mean(self.XY_net(XY_t)) - torch.log(torch.mean(torch.exp(self.XY_net(self.XY_ref_t))))
+        dXY = torch.mean(self.XY_net(XY_t)) - (torch.logsumexp(self.XY_net(self.XY_ref_t), 0) - self.XY_ref_t_log_size)
         return dXY.cpu().item()
 
     def predict(self, Train_X, Train_Y, Test_X, Test_Y):

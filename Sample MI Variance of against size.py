@@ -40,7 +40,7 @@ sample_size = [
     2000
     ]
 dims = [
-    1, 
+    # 1, 
     5, 
     10,
     20
@@ -83,7 +83,8 @@ for seed in tqdm(random_seeds):
                         if dim==1:
                             MI = np.average([MG.I(X[0],X[1]) for X in data])
                         else:
-                            MI = np.average([MG.sum_d(X[0:dim],X[-dim:]) for X in data])
+                            MI = np.average([MG.I(X[0:dim],X[-dim:]) for X in data])
+                            # MI = np.average([MG.sum_d(X[0:dim],X[-dim:]) for X in data])
                         diff.append((MI-GT)**2)
                         MIs.append(MI)
                     var.append(np.average(diff))
@@ -111,85 +112,85 @@ for seed in tqdm(random_seeds):
 
 
 
-        for rho in tqdm(rhos):
-            var = []
-            GT = []
-            MIs = []
-            sample_sizes = []
-            for i in range(len(sample_size)):
-                MG = MixedGaussian(sample_size=sample_size[i], rho1=rho)
-                diff = []
-                GT.append(MG.ground_truth)
-                for _ in range(num_sample):
-                    data = MG.data
-                    sample_sizes.append(sample_size[i])
-                    MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
-                    diff.append((MI-GT)**2)
-                    MIs.append(MI)
-                var.append(np.average(diff))
+        # for rho in tqdm(rhos):
+        #     var = []
+        #     GT = []
+        #     MIs = []
+        #     sample_sizes = []
+        #     for i in range(len(sample_size)):
+        #         MG = MixedGaussian(sample_size=sample_size[i], rho1=rho)
+        #         diff = []
+        #         GT.append(MG.ground_truth)
+        #         for _ in range(num_sample):
+        #             data = MG.data
+        #             sample_sizes.append(sample_size[i])
+        #             MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
+        #             diff.append((MI-GT)**2)
+        #             MIs.append(MI)
+        #         var.append(np.average(diff))
 
 
 
-            fig, ax = plt.subplots(1,2, figsize=(22, 7))
+        #     fig, ax = plt.subplots(1,2, figsize=(22, 7))
 
-            axCur = ax[0]
-            axCur.scatter(sample_sizes, MIs, label="estimate")
-            axCur.scatter(sample_size, GT, label="Ground Truth")
-            axCur.legend()
-            axCur.set_title("scatter plot of {} estimate with ground truth vs sample size".format(num_sample))
-            axCur.set_xlabel("sample size")
-            axCur.set_ylabel("mutual information")
+        #     axCur = ax[0]
+        #     axCur.scatter(sample_sizes, MIs, label="estimate")
+        #     axCur.scatter(sample_size, GT, label="Ground Truth")
+        #     axCur.legend()
+        #     axCur.set_title("scatter plot of {} estimate with ground truth vs sample size".format(num_sample))
+        #     axCur.set_xlabel("sample size")
+        #     axCur.set_ylabel("mutual information")
 
-            axCur = ax[1]
-            axCur.plot(sample_size, var)
-            axCur.set_title("mean square difference of sample MI with ground truth")
-            axCur.set_xlabel("sample size")
-            axCur.set_ylabel("mean square diff with ground truth")
-            plt.savefig("{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
-            # plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
-            plt.show()
-            plt.close()
-
-
-
-        for width in tqdm(widths):
-            var = []
-            GT = []
-            MIs = []
-            sample_sizes = []
-            for i in range(len(sample_size)):
-                MG = MixedUniform(mix, width, width, sample_size=sample_size[i])
-                diff = []
-                GT.append(MG.ground_truth)
-                for _ in range(num_sample):
-                    data = MG.data
-                    sample_sizes.append(sample_size[i])
-                    MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
-                    diff.append((MI-GT)**2)
-                    MIs.append(MI)
-                var.append(np.average(diff))
+        #     axCur = ax[1]
+        #     axCur.plot(sample_size, var)
+        #     axCur.set_title("mean square difference of sample MI with ground truth")
+        #     axCur.set_xlabel("sample size")
+        #     axCur.set_ylabel("mean square diff with ground truth")
+        #     plt.savefig("{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
+        #     # plt.savefig("/public/hphuang/experiments/var/{} mixed gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, rho, seed))
+        #     plt.show()
+        #     plt.close()
 
 
 
-            fig, ax = plt.subplots(1,2, figsize=(22, 7))
+        # for width in tqdm(widths):
+        #     var = []
+        #     GT = []
+        #     MIs = []
+        #     sample_sizes = []
+        #     for i in range(len(sample_size)):
+        #         MG = MixedUniform(mix, width, width, sample_size=sample_size[i])
+        #         diff = []
+        #         GT.append(MG.ground_truth)
+        #         for _ in range(num_sample):
+        #             data = MG.data
+        #             sample_sizes.append(sample_size[i])
+        #             MI = np.average([MG.sum_d(X[0],X[1]) for X in data])
+        #             diff.append((MI-GT)**2)
+        #             MIs.append(MI)
+        #         var.append(np.average(diff))
 
-            axCur = ax[0]
-            axCur.scatter(sample_sizes, MIs, label="estimate")
-            axCur.scatter(sample_size, GT, label="Ground Truth")
-            axCur.legend()
-            axCur.set_title("scatter plot of {} estimate with ground truth vs sample size".format(num_sample))
-            axCur.set_xlabel("sample size")
-            axCur.set_ylabel("mutual information")
 
-            axCur = ax[1]
-            axCur.plot(sample_size, var)
-            axCur.set_title("mean square difference of sample MI with ground truth")
-            axCur.set_xlabel("sample size")
-            axCur.set_ylabel("mean square diff with ground truth")
-            plt.savefig("{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
-            # plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
-            plt.show()
-            plt.close()
+
+        #     fig, ax = plt.subplots(1,2, figsize=(22, 7))
+
+        #     axCur = ax[0]
+        #     axCur.scatter(sample_sizes, MIs, label="estimate")
+        #     axCur.scatter(sample_size, GT, label="Ground Truth")
+        #     axCur.legend()
+        #     axCur.set_title("scatter plot of {} estimate with ground truth vs sample size".format(num_sample))
+        #     axCur.set_xlabel("sample size")
+        #     axCur.set_ylabel("mutual information")
+
+        #     axCur = ax[1]
+        #     axCur.plot(sample_size, var)
+        #     axCur.set_title("mean square difference of sample MI with ground truth")
+        #     axCur.set_xlabel("sample size")
+        #     axCur.set_ylabel("mean square diff with ground truth")
+        #     plt.savefig("{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
+        #     # plt.savefig("/public/hphuang/experiments/var/{} mixed uniform samples with width={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, width, seed))
+        #     plt.show()
+        #     plt.close()
 
 
 

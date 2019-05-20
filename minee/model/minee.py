@@ -70,6 +70,8 @@ class Minee():
         Train_X_ref = uniform_sample(Train_X.min(axis=0),Train_X.max(axis=0),Train_X.shape[0])
         Train_Y_ref = uniform_sample(Train_Y.min(axis=0),Train_Y.max(axis=0),Train_Y.shape[0])
 
+        self.XY_ref_t_log_size = float(np.log(Train_X.shape[0]))
+        self.XY_batch_log_size = float(np.log(self.batch_size))
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
         self.X_ref_t = torch.Tensor(Train_X_ref)
         self.Y_ref_t = torch.Tensor(Train_Y_ref)
@@ -81,9 +83,6 @@ class Minee():
         self.X_optimizer = optim.Adam(self.X_net.parameters(),lr=self.lr)
         self.Y_optimizer = optim.Adam(self.Y_net.parameters(),lr=self.lr)
 
-        XY_net_list = []
-        X_net_list = []
-        Y_net_list = []
 
         self.Train_dXY_list = []
         self.Train_dX_list = []
@@ -96,15 +95,15 @@ class Minee():
         if os.path.exists(fname):
             with open(fname,'rb') as f:
                 checkpoint = torch.load(fname,map_location = "cuda" if torch.cuda.is_available() else "cpu")
-                XY_net_list = checkpoint['XY_net_list']
-                X_net_list = checkpoint['X_net_list']
-                Y_net_list = checkpoint['Y_net_list']
+                XY_net_state_dict = checkpoint['XY_net_state_dict']
+                X_net_state_dict = checkpoint['X_net_state_dict']
+                Y_net_state_dict = checkpoint['Y_net_state_dict']
                 self.Train_dXY_list = checkpoint['Train_dXY_list']
                 self.Train_dX_list = checkpoint['Train_dX_list']
                 self.Train_dY_list = checkpoint['Train_dY_list']
-                self.XY_net.load_state_dict(XY_net_list[-1])
-                self.X_net.load_state_dict(X_net_list[-1])
-                self.Y_net.load_state_dict(Y_net_list[-1])
+                self.XY_net.load_state_dict(XY_net_state_dict)
+                self.X_net.load_state_dict(X_net_state_dict)
+                self.Y_net.load_state_dict(Y_net_state_dict)
                 if self.verbose:
                     print('results loaded from '+fname)
         else:
@@ -123,14 +122,14 @@ class Minee():
 
                 if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
                     self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
-                    XY_net_list = np.append(XY_net_list,copy.deepcopy(self.XY_net.state_dict()))
-                    X_net_list = np.append(X_net_list,copy.deepcopy(self.X_net.state_dict()))
-                    Y_net_list = np.append(Y_net_list,copy.deepcopy(self.Y_net.state_dict()))
+                    XY_net_state_dict = copy.deepcopy(self.XY_net.state_dict())
+                    X_net_state_dict = copy.deepcopy(self.X_net.state_dict())
+                    Y_net_state_dict = copy.deepcopy(self.Y_net.state_dict())
                     # To save intermediate works, change the condition to True
                     fname_i = os.path.join(self.prefix, "cache_iter={}.pt".format(i+1))
                     if True:
                         with open(fname_i,'wb') as f:
-                            dill.dump([XY_net_list,X_net_list,Y_net_list,self.Train_dXY_list,self.Train_dX_list,self.Train_dY_list],f)
+                            dill.dump([XY_net_state_dict,X_net_state_dict,Y_net_state_dict,self.Train_dXY_list,self.Train_dX_list,self.Train_dY_list],f)
                             if self.verbose:
                                 print('results saved: '+str(snapshot_i))
                     snapshot_i += 1
@@ -142,9 +141,11 @@ class Minee():
                     'Train_dXY_list' : self.Train_dXY_list,
                     'Train_dX_list' : self.Train_dX_list,
                     'Train_dY_list' : self.Train_dY_list,
-                    'XY_net_list' : XY_net_list,
-                    'X_net_list' : X_net_list,
-                    'Y_net_list' : Y_net_list
+                    'XY_net_state_dict' : XY_net_state_dict,
+                    'X_net_state_dict' : X_net_state_dict,
+                    'Y_net_state_dict' : Y_net_state_dict,
+                    'Train_X' : self.Train_X,
+                    'Train_Y' : self.Train_Y
                 },f)
                 if self.verbose:
                     print('results saved to '+fname)
@@ -166,22 +167,28 @@ class Minee():
         batch_Y_ref = batch_XY_ref[:,-Train_Y.shape[1]:]
 
         fXY = self.XY_net(batch_XY)
-        efXY_ref = torch.exp(self.XY_net(batch_XY_ref))
-        batch_dXY = torch.mean(fXY) - torch.log(torch.mean(efXY_ref))
+        # efXY_ref = torch.exp(self.XY_net(batch_XY_ref))
+        # batch_dXY = torch.mean(fXY) - torch.log(torch.mean(efXY_ref))
+        batch_mar_XY = torch.logsumexp(self.XY_net(batch_XY_ref), 0) - self.XY_batch_log_size
+        batch_dXY = torch.mean(fXY) - batch_mar_XY
         batch_loss_XY = -batch_dXY
         batch_loss_XY.backward()
         self.XY_optimizer.step()    
 
         fX = self.X_net(batch_X)
-        efX_ref = torch.exp(self.X_net(batch_X_ref))
-        batch_dX = torch.mean(fX) - torch.log(torch.mean(efX_ref))
+        # efX_ref = torch.exp(self.X_net(batch_X_ref))
+        # batch_dX = torch.mean(fX) - torch.log(torch.mean(efX_ref))
+        batch_mar_X = torch.logsumexp(self.X_net(batch_X_ref), 0) - self.XY_batch_log_size
+        batch_dX = torch.mean(fX) - batch_mar_X
         batch_loss_X = -batch_dX
         batch_loss_X.backward()
         self.X_optimizer.step()    
         
         fY = self.Y_net(batch_Y)
-        efY_ref = torch.exp(self.Y_net(batch_Y_ref))
-        batch_dY = torch.mean(fY) - torch.log(torch.mean(efY_ref))
+        # efY_ref = torch.exp(self.Y_net(batch_Y_ref))
+        # batch_dY = torch.mean(fY) - torch.log(torch.mean(efY_ref))
+        batch_mar_Y = torch.logsumexp(self.Y_net(batch_Y_ref), 0) - self.XY_batch_log_size
+        batch_dY = torch.mean(fY) - batch_mar_Y
         batch_loss_Y = -batch_dY
         batch_loss_Y.backward()
         self.Y_optimizer.step()    
@@ -191,9 +198,12 @@ class Minee():
         X_t = torch.Tensor(X)
         Y_t = torch.Tensor(Y)
 
-        dXY = torch.mean(self.XY_net(XY_t)) - torch.log(torch.mean(torch.exp(self.XY_net(self.XY_ref_t))))
-        dX = torch.mean(self.X_net(X_t)) - torch.log(torch.mean(torch.exp(self.X_net(self.X_ref_t))))
-        dY = torch.mean(self.Y_net(Y_t)) - torch.log(torch.mean(torch.exp(self.Y_net(self.Y_ref_t))))
+        # dXY = torch.mean(self.XY_net(XY_t)) - torch.log(torch.mean(torch.exp(self.XY_net(self.XY_ref_t))))
+        # dX = torch.mean(self.X_net(X_t)) - torch.log(torch.mean(torch.exp(self.X_net(self.X_ref_t))))
+        # dY = torch.mean(self.Y_net(Y_t)) - torch.log(torch.mean(torch.exp(self.Y_net(self.Y_ref_t))))
+        dXY = torch.mean(self.XY_net(XY_t)) - (torch.logsumexp(self.XY_net(self.XY_ref_t), 0) - self.XY_ref_t_log_size)
+        dX = torch.mean(self.X_net(X_t)) - (torch.logsumexp(self.X_net(self.X_ref_t), 0) - self.XY_ref_t_log_size)
+        dY = torch.mean(self.Y_net(Y_t)) - (torch.logsumexp(self.Y_net(self.Y_ref_t), 0) - self.XY_ref_t_log_size)
         return dXY.cpu().item(), dX.cpu().item(), dY.cpu().item()
 
     def predict(self, Train_X, Train_Y, Test_X, Test_Y):
