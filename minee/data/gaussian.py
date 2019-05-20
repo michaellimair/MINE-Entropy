@@ -73,37 +73,46 @@ class Gaussian():
         return np.log(fxy(x, y)/(fx(x)*fy(y)))
     
     def sum_d(self, x,y):
-        def fxy(x,y, covMat, mu):
-            if type(x)==np.float64 or type(x)==float:
-                X = np.array([x, y])
-            else:
-                raise ValueError("x should be float")
-            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose())
-            return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(1-self.rho**2)) 
-
-        def fx(x, covMat, mu):
-            if type(x)==np.float64 or type(x)==float:
-                return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0])
-            else:
-                raise ValueError("x should be float")
-
-        def fy(y, covMat, mu):
-            if type(y)==np.float64 or type(y)==float:
-                return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])*dim
-            else:
-                raise ValueError("y should be float")
         sum_d_res = []
         dim = len(self.mean)//2
+        realmean = self.mean
         for dim_no in range(0, dim):
             X = x[dim_no]
-            Y = y[-dim_no-1]
-            mu = np.array([self.mean[dim_no], self.mean[-dim_no-1]])
-            covMat = (np.identity(2)+self.rho*np.identity(2)[::-1])
-            fxy_ = fxy(X, Y, covMat, mu)
-            fx_ = fx(X, covMat, mu)
-            fy_ = fy(Y, covMat, mu)
-            mi = np.log(fxy_/(fx_*fy_))
-            sum_d_res.append(mi) 
+            Y = y[dim_no]
+            self.mean = np.zeros(2).tolist() #temporarily modify mean for dimensional pair
+            sum_d_res.append(self.I(X, Y)) 
+        self.mean = realmean #save real mean again
+        # def fxy(x,y, covMat, mu):
+        #     if type(x)==np.float64 or type(x)==float:
+        #         X = np.array([x, y])
+        #     else:
+        #         raise ValueError("x should be float")
+        #     temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat)), (X-mu).transpose())
+        #     return np.exp(-.5*temp1) / (2*np.pi * np.sqrt(1-self.rho**2)) 
+
+        # def fx(x, covMat, mu):
+        #     if type(x)==np.float64 or type(x)==float:
+        #         return np.exp(-(x-mu[0])**2/(2*covMat[0,0])) / np.sqrt(2*np.pi*covMat[0,0])
+        #     else:
+        #         raise ValueError("x should be float")
+
+        # def fy(y, covMat, mu):
+        #     if type(y)==np.float64 or type(y)==float:
+        #         return np.exp(-(y-mu[1])**2/(2*covMat[1,1])) / np.sqrt(2*np.pi*covMat[1,1])*dim
+        #     else:
+        #         raise ValueError("y should be float")
+        # sum_d_res = []
+        # dim = len(self.mean)//2
+        # for dim_no in range(0, dim):
+        #     X = x[dim_no]
+        #     Y = y[-dim_no-1]
+        #     mu = np.array([self.mean[dim_no], self.mean[-dim_no-1]])
+        #     covMat = (np.identity(2)+self.rho*np.identity(2)[::-1])
+        #     fxy_ = fxy(X, Y, covMat, mu)
+        #     fx_ = fx(X, covMat, mu)
+        #     fy_ = fy(Y, covMat, mu)
+        #     mi = np.log(fxy_/(fx_*fy_))
+        #     sum_d_res.append(mi) 
         return np.sum(sum_d_res)
 
 
