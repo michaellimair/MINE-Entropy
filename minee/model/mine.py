@@ -48,7 +48,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -61,8 +61,14 @@ class Mine():
         self.ground_truth = ground_truth
         self.verbose = verbose
         self.full_ref = full_ref
+        self.load_dict = load_dict
 
     def fit(self, Train_X, Train_Y, Test_X, Test_Y):
+        self.Train_X = Train_X
+        self.Train_Y = Train_Y
+        self.Test_X = Test_X
+        self.Test_Y = Test_Y
+
         if self.log:
             log_file = os.path.join(self.prefix, "{}_train.log".format(self.model_name))
             log = open(log_file, "w")
@@ -75,34 +81,50 @@ class Mine():
             log.write("model_name={0}\n".format(self.model_name))
             log.write("prefix={0}\n".format(self.prefix))
             log.write("ground_truth={0}\n".format(self.ground_truth))
-            log.write("verbose={}\n".format(self.verbose))
-            log.write("full_ref={}\n".format(self.full_ref))
+            log.write("verbose={0}\n".format(self.verbose))
+            log.write("full_ref={0}\n".format(self.full_ref))
+            log.write("load_dict={0}\n".format(self.load_dict))
             log.close()
 
-        self.Train_X = Train_X
-        self.Train_Y = Train_Y
-        self.Test_X = Test_X
-        self.Test_Y = Test_Y
 
-        # For MI estimate but fail for high-dim 
+
+        self.XY_net = MineNet(input_size=self.Train_X.shape[1]+self.Train_Y.shape[1],hidden_size=self.hidden_size)
+        self.XY_optimizer = optim.Adam(self.XY_net.parameters(),lr=self.lr)
+
+        self.Train_dXY_list = []
+        self.Test_dXY_list = []
+
+        self.ma_ef = 1
+        snapshot_i = 0
+        # set starting iter_num
+        start_i = 0
+        fname = os.path.join(self.prefix, "cache.pt")
+        if self.load_dict and os.path.exists(fname):
+            state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
+            self.load_state_dict(state_dict)
+            if self.verbose:
+                print('results loaded from '+fname)
+
+        self.XY_t = torch.Tensor(np.concatenate((self.Train_X,self.Train_Y),axis=1))
+
         if self.full_ref:
-            Train_X_ref, Train_Y_ref = np.meshgrid(Train_X, Train_Y.T)
-            if len(Train_X.shape)==1:
+            Train_X_ref, Train_Y_ref = np.meshgrid(self.Train_X, self.Train_Y.T)
+            if len(self.Train_X.shape)==1:
                 Train_X_ref = Train_X_ref.flatten()[:,None]
                 Train_Y_ref = Train_Y_ref.flatten()[:,None]
-            elif len(Train_X.shape)==2:
-                Train_X_ref = Train_X_ref[:Train_X.shape[0],:].reshape((Train_X.shape[0]**2), Train_X.shape[1])
-                Train_Y_ref = Train_Y_ref[:,:Train_X.shape[0]].reshape(Train_X.shape[1], (Train_X.shape[0]**2)).T
+            elif len(self.Train_X.shape)==2:
+                Train_X_ref = Train_X_ref[:self.Train_X.shape[0],:].reshape((self.Train_X.shape[0]**2), self.Train_X.shape[1])
+                Train_Y_ref = Train_Y_ref[:,:self.Train_X.shape[0]].reshape(self.Train_X.shape[1], (self.Train_X.shape[0]**2)).T
         else:
-            Train_X_ref = resample(Train_X,batch_size=Train_X.shape[0])
-            Train_Y_ref = resample(Train_Y,batch_size=Train_Y.shape[0])
+            Train_X_ref = resample(self.Train_X,batch_size=self.Train_X.shape[0])
+            Train_Y_ref = resample(self.Train_Y,batch_size=self.Train_Y.shape[0])
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
         self.XY_ref_t_log_size = float(np.log(Train_X_ref.shape[0]))
 
         # Plot data and ref for MI estimate
-        plt.scatter(Train_X,Train_Y)
+        plt.scatter(self.Train_X,self.Train_Y)
         plt.scatter(Train_X_ref,Train_Y_ref,label="ref",marker="_",color="darkorange")
-        plt.scatter(Train_X,Train_Y,label="data",marker="+",color="steelblue")
+        plt.scatter(self.Train_X,self.Train_Y,label="data",marker="+",color="steelblue")
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.title('Plot of all data samples and reference samples')
@@ -111,56 +133,36 @@ class Mine():
         plt.savefig(figName)
         plt.close()
 
-        self.XY_t = torch.Tensor(np.concatenate((Train_X,Train_Y),axis=1))
+        if len(self.Train_dXY_list) > 0:
+            start_i = len(self.Train_dXY_list) + 1
+            for i in range(len(self.snapshot)):
+                if self.snapshot[i] <= start_i:
+                    snapshot_i = i+1
+        for i in range(start_i, self.iter_num):
+            self.update_mine_net(self.Train_X, self.Train_Y, self.batch_size, self.ma_rate)
+            Train_dXY = self.get_estimate(self.Train_X, self.Train_Y)
+            self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY)
 
-        self.XY_net = MineNet(input_size=Train_X.shape[1]+Train_Y.shape[1],hidden_size=self.hidden_size)
-        self.XY_optimizer = optim.Adam(self.XY_net.parameters(),lr=self.lr)
+            Test_dXY = self.get_estimate(self.Test_X, self.Test_Y)
+            self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY)
 
-        self.ma_ef = 1
-
-        XY_net_list = []
-
-        self.Train_dXY_list = []
-        self.Test_dXY_list = []
-
-        fname = os.path.join(self.prefix, "cache_iter={}.pt".format(self.iter_num))
-        if os.path.exists(fname):
-            with open(fname,'rb') as f:
-                checkpoint = torch.load(fname,map_location = "cuda" if torch.cuda.is_available() else "cpu")
-                XY_net_list = checkpoint['XY_net_list']
-                self.Train_dXY_list = checkpoint['Train_dXY_list']
-                self.XY_net.load_state_dict(XY_net_list[-1])
-                if self.verbose:
-                    print('results loaded from '+fname)
-        else:
-            snapshot_i = 0
-            for i in range(self.iter_num):
-                self.update_mine_net(Train_X, Train_Y, self.batch_size, self.ma_rate)
-                Train_dXY = self.get_estimate(Train_X, Train_Y)
-                self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY)
-
-                Test_dXY = self.get_estimate(Test_X, Test_Y)
-                self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY)
-
-                if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
-                    self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
-                    XY_net_list = np.append(XY_net_list,copy.deepcopy(self.XY_net.state_dict()))
-                    # To save intermediate works, change the condition to True
-                    fname_i = os.path.join(self.prefix, "cache_iter={}.pt".format(i+1))
-                    if True:
-                        with open(fname_i,'wb') as f:
-                            dill.dump([XY_net_list,self.Train_dXY_list],f)
-                            if self.verbose:
-                                print('results saved: '+str(snapshot_i))
-                    snapshot_i += 1
+            if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
+                self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
+                # To save intermediate works, change the condition to True
+                fname_i = os.path.join(self.prefix, "cache_iter={}.pt".format(i+1))
+                if True:
+                    with open(fname_i,'wb') as f:
+                        # dill.dump(self.state_dict(),f)
+                        torch.save(self.state_dict(),f)
+                        if self.verbose:
+                            print('results saved: '+str(snapshot_i))
+                snapshot_i += 1
 
         # To save new results to a db file using the following code, delete the existing db file.
+        fname = os.path.join(self.prefix, "cache_iter={}.pt".format(self.iter_num))
         if not os.path.exists(fname):
             with open(fname,'wb') as f:
-                torch.save({
-                    'Train_dXY_list' : self.Train_dXY_list,
-                    'XY_net_list' : XY_net_list
-                },f)
+                torch.save(self.state_dict(),f)
                 if self.verbose:
                     print('results saved to '+fname)
 
@@ -253,4 +255,34 @@ class Mine():
         figName = os.path.join(self.prefix, "{}_{}".format(self.model_name, suffix))
         fig.savefig(figName, bbox_inches='tight')
         plt.close()
+
+    def state_dict(self):
+        return {
+            'Train_dXY_list' : self.Train_dXY_list,
+            'Test_dXY_list' : self.Test_dXY_list,
+            'XY_net': self.XY_net.state_dict(),
+            'XY_optimizer': self.XY_optimizer.state_dict(),
+            'Train_X': self.Train_X,
+            'Train_Y': self.Train_Y,
+            'Test_X': self.Test_X,
+            'Test_Y': self.Test_Y,
+            'lr': self.lr,
+            'batch_size': self.batch_size,
+            'ma_rate': self.ma_rate,
+            'ma_ef': self.ma_ef
+        }
+
+    def load_state_dict(self, state_dict):
+        self.XY_net.load_state_dict(state_dict['XY_net'])
+        self.XY_optimizer.load_state_dict(state_dict['XY_optimizer'])
+        self.Train_X = state_dict['Train_X']
+        self.Train_Y = state_dict['Train_Y']
+        self.Test_X = state_dict['Test_X']
+        self.Test_Y = state_dict['Test_Y']
+        self.lr = state_dict['lr']
+        self.batch_size = state_dict['batch_size']
+        self.ma_rate = state_dict['ma_rate']
+        self.ma_ef = state_dict['ma_ef']
+        self.Test_dXY_list = state_dict['Test_dXY_list']
+        self.Train_dXY_list = state_dict['Train_dXY_list']
 
