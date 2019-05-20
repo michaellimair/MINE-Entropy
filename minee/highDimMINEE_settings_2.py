@@ -44,36 +44,36 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
-    'MINEE': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=1,
-            load_dict=True
-        ), 
-        'color': 'purple'
-    },
-    'MINEE_ref=50x': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=50,
-            load_dict=True
-        ), 
-        'color': 'purple'
-    },
+    # 'MINEE': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=1,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
+    # 'MINEE_ref=50x': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=50,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
     'MINEE_ref=100x': {
         'model': Minee(
             lr=lr, 
@@ -89,21 +89,21 @@ model = {
         ), 
         'color': 'purple'
     },
-    'MINEE_ref=200x': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=200,
-            load_dict=True
-        ), 
-        'color': 'purple'
-    },
+    # 'MINEE_ref=200x': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=200,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
