@@ -16,8 +16,8 @@ def uniform_sample(data, batch_size, window_scale = 1):
         data_min = data.min()
         data_max = data.max()
     else:
-        data_min = data.min(dim=0)[0]
-        data_max = data.max(dim=0)[0]
+        data_min = data.min(axis=0)[0]
+        data_max = data.max(axis=0)[0]
     if window_scale != 1:
         data_med = (data_max + data_min) / 2
         data_rad = (data_max - data_min) / 2
