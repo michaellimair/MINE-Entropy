@@ -101,7 +101,7 @@ class Minee():
         Train_X_ref = uniform_sample(Train_X,batch_size=int(Train_X.shape[0]*self.ref_batch_factor),window_scale=self.ref_window_scale)
         Train_Y_ref = uniform_sample(Train_Y,batch_size=int(Train_Y.shape[0]*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
-        self.log_ref_size = float(np.log(Train_X.shape[0]))
+        self.log_ref_size = float(np.log(int(Train_X.shape[0]*self.ref_batch_factor)))
         self.log_batch_size = float(np.log(self.batch_size))
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
         self.X_ref_t = torch.Tensor(Train_X_ref)
