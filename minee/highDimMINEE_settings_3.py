@@ -59,7 +59,7 @@ model = {
     #     ), 
     #     'color': 'purple'
     # },
-    # 'MINEE_ref=50x': {
+    # 'MINEE_ref=2x': {
     #     'model': Minee(
     #         lr=lr, 
     #         batch_size=batch_size,
@@ -69,12 +69,12 @@ model = {
     #         log=True,
     #         verbose=False,
     #         ref_window_scale=1,
-    #         ref_batch_factor=50,
+    #         ref_batch_factor=2,
     #         load_dict=True
     #     ), 
     #     'color': 'purple'
     # },
-    # 'MINEE_ref=100x': {
+    # 'MINEE_ref=4x': {
     #     'model': Minee(
     #         lr=lr, 
     #         batch_size=batch_size,
@@ -84,12 +84,12 @@ model = {
     #         log=True,
     #         verbose=False,
     #         ref_window_scale=1,
-    #         ref_batch_factor=100,
+    #         ref_batch_factor=4,
     #         load_dict=True
     #     ), 
     #     'color': 'purple'
     # },
-    'MINEE_ref=200x': {
+    'MINEE_ref=16x': {
         'model': Minee(
             lr=lr, 
             batch_size=batch_size,
@@ -99,7 +99,7 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=200,
+            ref_batch_factor=16,
             load_dict=True
         ), 
         'color': 'purple'
@@ -196,25 +196,25 @@ data = {
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    '6-Dimension Gaussian': {
+    '3-Dimension Gaussian': {
         'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
                 'rho': rho,
-                'mean':np.zeros(12).tolist(), 
+                'mean':np.zeros(6).tolist(), 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    '10-Dimension Gaussian': {
+    '4-Dimension Gaussian': {
         'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
                 'rho': rho,
-                'mean':np.zeros(20).tolist(), 
+                'mean':np.zeros(8).tolist(), 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
