@@ -54,6 +54,7 @@ def getResultPlot(ax, xs, z=None, sampleNum=0):
 #     ax.grid(True)
 #     ax.legend()
 #     return ax
+
 def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[]):
     ax.plot(range(1,len(train_loss)+1),train_loss, label='Training')
     if len(valid_loss) > 0:
