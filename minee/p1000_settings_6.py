@@ -1,5 +1,5 @@
 import numpy as np
-random_seed = 0
+random_seed = 1
 np.random.seed(seed=random_seed)
 import torch
 # torch.manual_seed(seed=random_seed)
@@ -17,19 +17,19 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 24
+cpu = 45
 batch_size=50
-lr = 1e-3
+lr = 5e-5
 moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (1000, 250),
     (1000, 500),
-    (1000, 1000)
+    (1000, 250),
+    (1000, 100)
     ]
 
-iter_num = int(6400)
+iter_num = int(1e6)
 record_rate = int(100)
 snapshot = (record_rate*(2**np.arange(int(np.log2(iter_num//record_rate))))).tolist()
 video_frames=int(0)
@@ -51,7 +51,7 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=1,
+            ref_batch_factor=10,
             load_dict=True
         ), 
         'color': 'purple'
@@ -81,14 +81,14 @@ model = {
             iter_num=iter_num,
             log=True,
             verbose=False,
-            full_ref=True,
+            full_ref=False,
             load_dict=True
         ),
         'color': 'magenta'
     },
 }
 
-sample_size = 200
+sample_size = 400
 rhos = [ 
     0, 
     0.2, 
@@ -109,32 +109,32 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # 'Mixed Gaussian': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     'Mixed Uniform': {
         'model': MixedUniform, 
         'kwargs': [
@@ -148,6 +148,18 @@ data = {
         'varying_param_name': 'width_a', 
         'x_axis_name': 'width'
     }, 
+    # '6-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(12).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # {
     #     'name': 'Examples', 
     #     'model': XX(

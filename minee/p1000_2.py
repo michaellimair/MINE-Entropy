@@ -12,8 +12,8 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 import torch
 
-from . import highDimMINEE_settings_1 as settings
-settings_file = "highDimMINEE_settings_1.py"
+from . import p1000_settings_2 as settings
+settings_file = "p1000_settings_2.py"
 
 def saveResultsFig(results_dict, experiment_path=""):
     """

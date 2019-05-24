@@ -1,4 +1,6 @@
 import numpy as np
+random_seed = 2
+np.random.seed(seed=random_seed)
 from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 

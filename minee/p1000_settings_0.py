@@ -1,5 +1,5 @@
 import numpy as np
-random_seed = 0
+random_seed = 1
 np.random.seed(seed=random_seed)
 import torch
 # torch.manual_seed(seed=random_seed)
@@ -19,17 +19,17 @@ import numpy as np
 
 cpu = 24
 batch_size=50
-lr = 1e-3
+lr = 1e-4
 moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (400, 100),
-    # (400, 200),
-    # (400, 400)
+    (1000, 500),
+    (1000, 250),
+    (1000, 100)
     ]
 
-iter_num = int(6400)
+iter_num = int(1e6)
 record_rate = int(100)
 snapshot = (record_rate*(2**np.arange(int(np.log2(iter_num//record_rate))))).tolist()
 video_frames=int(0)
@@ -88,7 +88,7 @@ model = {
     # },
 }
 
-sample_size = 400
+sample_size = 200
 rhos = [ 
     0, 
     0.2, 
@@ -123,31 +123,31 @@ data = {
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
     }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    'Mixed Uniform': {
-        'model': MixedUniform, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'width_a': width, 
-                'width_b': width, 
-                'mix': 0.5
-            } for width in widths
-        ], 
-        'varying_param_name': 'width_a', 
-        'x_axis_name': 'width'
-    }, 
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
+    # 'Mixed Uniform': {
+    #     'model': MixedUniform, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'width_a': width, 
+    #             'width_b': width, 
+    #             'mix': 0.5
+    #         } for width in widths
+    #     ], 
+    #     'varying_param_name': 'width_a', 
+    #     'x_axis_name': 'width'
+    # }, 
     # {
     #     'name': 'Examples', 
     #     'model': XX(

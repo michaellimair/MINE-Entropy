@@ -105,8 +105,8 @@ for seed in tqdm(random_seeds):
                 axCur.set_title("mean square difference of sample MI with ground truth")
                 axCur.set_xlabel("sample size")
                 axCur.set_ylabel("mean square diff with ground truth")
-                plt.savefig("{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
-                # plt.savefig("/public/hphuang/experiments/var/{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
+                # plt.savefig("{} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
+                plt.savefig("/public/hphuang/experiments/var/new {} {}-dim gaussian samples with rho={} mi plot and mean-square-diff with ground truth seed={}.png".format(num_sample, dim, rho, seed))
                 plt.show()
                 plt.close()
 

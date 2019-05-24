@@ -1,8 +1,11 @@
+# random_seed = 1
+import numpy as np
+# np.random.seed(seed=random_seed)
 import torch
+# torch.manual_seed(seed=random_seed)
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
 import os
 import copy
 import dill

@@ -1,5 +1,5 @@
 import numpy as np
-random_seed = 0
+random_seed = 1
 np.random.seed(seed=random_seed)
 import torch
 # torch.manual_seed(seed=random_seed)
@@ -19,20 +19,17 @@ import numpy as np
 
 cpu = 24
 batch_size=50
-lr = 1e-3
+lr = 1e-4
 moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    # (200, 50), 
-    # (200, 100), 
-    # (200, 200),
-    # (400, 50),
-    # (400, 100),
-    (400, 400)
+    (1000, 500),
+    (1000, 250),
+    (1000, 100)
     ]
 
-iter_num = int(1e8)
+iter_num = int(1e6)
 record_rate = int(100)
 snapshot = (record_rate*(2**np.arange(int(np.log2(iter_num//record_rate))))).tolist()
 video_frames=int(0)
@@ -44,37 +41,7 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
-    # 'MINEE': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=1,
-    #         load_dict=True
-    #     ), 
-    #     'color': 'purple'
-    # },
-    # 'MINEE_ref=2x': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=2,
-    #         load_dict=True
-    #     ), 
-    #     'color': 'purple'
-    # },
-    'MINEE_ref=4x': {
+    'MINEE': {
         'model': Minee(
             lr=lr, 
             batch_size=batch_size,
@@ -84,26 +51,11 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=4,
+            ref_batch_factor=10,
             load_dict=True
         ), 
         'color': 'purple'
     },
-    # 'MINEE_ref=16x': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=16,
-    #         load_dict=True
-    #     ), 
-    #     'color': 'purple'
-    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
@@ -129,7 +81,7 @@ model = {
     #         iter_num=iter_num,
     #         log=True,
     #         verbose=False,
-    #         full_ref=True,
+    #         full_ref=False,
     #         load_dict=True
     #     ),
     #     'color': 'magenta'
@@ -147,7 +99,6 @@ rhos = [
     0.95, 
     0.99 
     ]
-# rhos = [0.9]
 widths = [
     2,
     4,
@@ -172,66 +123,18 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    # 'Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
-    #         {
-    #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':[0,0], 
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho', 
-    #     'x_axis_name': 'correlation', 
-    # },
-    '2-Dimension Gaussian': {
+    'Gaussian': {
         'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
                 'rho': rho,
-                'mean':np.zeros(4).tolist(), 
+                'mean':[0,0], 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
-    '3-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(6).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    '4-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(8).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    # '20-Dimension Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
-    #         {
-    #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':np.zeros(40).tolist(), 
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho', 
-    #     'x_axis_name': 'correlation', 
-    # },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [

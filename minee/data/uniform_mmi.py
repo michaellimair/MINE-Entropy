@@ -1,4 +1,6 @@
 import numpy as np
+random_seed = 2
+np.random.seed(seed=random_seed)
 from numpy.random import uniform as unif
 
 class UniformMMI():

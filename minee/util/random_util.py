@@ -1,5 +1,5 @@
 import numpy as np
-random_seed = 1
+random_seed = 2
 np.random.seed(seed=random_seed)
 
 def resample(data,batch_size,replace=False):

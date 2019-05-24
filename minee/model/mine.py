@@ -1,8 +1,8 @@
-random_seed = 0
+# random_seed = 1
 import numpy as np
-np.random.seed(seed=random_seed)
+# np.random.seed(seed=random_seed)
 import torch
-torch.manual_seed(seed=random_seed)
+# torch.manual_seed(seed=random_seed)
 
 # Use GPU when available
 # Need to use Tensor to create the tensor of default type
@@ -48,7 +48,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -62,6 +62,7 @@ class Mine():
         self.verbose = verbose
         self.full_ref = full_ref
         self.load_dict = load_dict
+        self.ref_factor = ref_factor
 
     def fit(self, Train_X, Train_Y, Test_X, Test_Y):
         self.Train_X = Train_X
@@ -84,6 +85,7 @@ class Mine():
             log.write("verbose={0}\n".format(self.verbose))
             log.write("full_ref={0}\n".format(self.full_ref))
             log.write("load_dict={0}\n".format(self.load_dict))
+            log.write("ref_factor={0}\n".format(self.ref_factor))
             log.close()
 
 
@@ -115,9 +117,12 @@ class Mine():
             elif len(self.Train_X.shape)==2:
                 Train_X_ref = Train_X_ref[:self.Train_X.shape[0],:].reshape((self.Train_X.shape[0]**2), self.Train_X.shape[1])
                 Train_Y_ref = Train_Y_ref[:,:self.Train_X.shape[0]].reshape(self.Train_X.shape[1], (self.Train_X.shape[0]**2)).T
+        elif self.ref_factor > 1:
+            Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=True)
+            Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=True)
         else:
-            Train_X_ref = resample(self.Train_X,batch_size=self.Train_X.shape[0])
-            Train_Y_ref = resample(self.Train_Y,batch_size=self.Train_Y.shape[0])
+            Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=False)
+            Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=False)
         self.XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
         self.XY_ref_t_log_size = float(np.log(Train_X_ref.shape[0]))
 
