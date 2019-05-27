@@ -31,10 +31,3 @@ def mseEntropy(clf, X, y):
 def unifEntropy(y, high=1.0, low=0.0):
     return np.log(high-low)
 
-def ShannonEntropy(y):
-    from .model import ifestimators as ife
-    import matlab
-    params = dict()
-    funPara = dict()
-    y_ = matlab.double(y[:,None].tolist())
-    return ife.eng.shannonEntropy(y_, funPara, params)

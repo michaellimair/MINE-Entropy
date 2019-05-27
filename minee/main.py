@@ -1,12 +1,11 @@
 import numpy as np
-from .model import mine
+random_seed = 0
+np.random.seed(seed=random_seed)
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import math
-from scipy.stats import randint
 import os
-from .utils import save_train_curve
 # from model import Mine, LinearReg, Kraskov
 from joblib import Parallel, delayed
 from . import settings
@@ -61,22 +60,38 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     """
 
     # results = dict()
-    data_model.n_samples = pop
+    data_model.sample_size = pop
 
-    X_train = data_model.data
-    X_test = data_model.data
+    data_train = data_model.data
+    data_test = data_model.data
+    if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
+        raise ValueError("dim of gaussian should be even")
+    X_train = data_train[:,0:data_train.shape[1]//2]
+    Y_train = data_train[:,-data_train.shape[1]//2:]
+    X_test = data_test[:,0:data_test.shape[1]//2]
+    Y_test = data_test[:,-data_test.shape[1]//2:]
     ground_truth = data_model.ground_truth
 
     prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}_{}_{}={}_model={}/".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name))
     if not os.path.exists(prefix_name_loop):
-        os.makedirs(prefix_name_loop)
-
-    # pop_batch_path = os.path.join(experiment_path, "pop={}_batch={}/".format(pop, batch))
-    # prefix_name_loop = os.path.join(pop_batch_path, "{}_{}={}/".format(data_name, varying_param_name, varying_param_value))
-    # if not os.path.exists(pop_batch_path):
-    #     os.makedirs(pop_batch_path)
-    # if not os.path.exists(prefix_name_loop):
-    #     os.makedirs(prefix_name_loop)
+        os.makedirs(prefix_name_loop, exist_ok=True)
+    
+    # if X_train.shape[1]==1:
+    #     #Plot Ground Truth MI
+    #     fig, ax = plt.subplots(figsize=(15, 15))
+    #     Xmax = max(X_train)
+    #     Xmin = min(X_train)
+    #     Ymax = max(Y_train)
+    #     Ymin = min(Y_train)
+    #     x = np.linspace(Xmin, Xmax, 300)
+    #     y = np.linspace(Ymin, Ymax, 300)
+    #     xs, ys = np.meshgrid(x,y)
+    #     ax, c = data_model.plot_i(ax, xs, ys)
+    #     fig.colorbar(c, ax=ax)
+    #     ax.set_title("i(X;Y)")
+    #     figName = os.path.join(prefix_name_loop, "i_XY")
+    #     fig.savefig(figName, bbox_inches='tight')
+    #     plt.close()
 
 
     # Fit Algorithm
@@ -90,7 +105,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     model['model'].paramName = varying_param_name
     model['model'].paramValue = varying_param_value
     model['model'].ground_truth = ground_truth
-    mi_estimation = model['model'].predict(X_train, X_test)
+    mi_estimation = model['model'].predict(X_train, Y_train, X_test, Y_test)
 
     # Save Results
     # results[model_name] = mi_estimation
@@ -162,8 +177,9 @@ def run_experiment():
     experiment_path = os.path.join(settings.output_path, experiment_name)
     while True:
         if os.path.exists(experiment_path):
-            experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
-            experiment_path = os.path.join(settings.output_path, experiment_name)
+            # experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
+            # experiment_path = os.path.join(settings.output_path, experiment_name)
+            break
         else:
             os.makedirs(experiment_path)
             print('Output will be saved into {}'.format(experiment_path))
@@ -174,62 +190,6 @@ def run_experiment():
             copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
             break     
     plot(experiment_path)
-
-def run_experiment_batch_pop_ir():
-    batch = settings.batch
-    # batch = [int(2), int(8), int(256), int(512)]
-    pop = settings.pop
-    # snapshot = [int(iterNum_/128), int(iterNum_/64), int(iterNum_/32), int(iterNum_/16), int(iterNum_/8), int(iterNum_/4), int(iterNum_/2)]
-    for pop_ in pop:
-        for bat_ in batch:
-            experiment_name = "pop={}_batch={}".format(pop_, bat_)
-            experiment_path = os.path.join(settings.output_path, experiment_name)
-
-            settings.model['MINE_direct']['model'].batch_size = bat_
-            settings.model['MINE_entropy']['model'].batch_size = bat_
-            settings.model['MINE_multi_task']['model'].batch_size = bat_
-            settings.model['MINE_direct_hidden_X_2']['model'].batch_size = bat_
-            
-            settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
-                                                            {
-                                                                'n_samples': pop_, 
-                                                                'mean1':0, 
-                                                                'mean2':0, 
-                                                                'rho1': rho, 
-                                                                'rho2': -rho,
-                                                            } for rho in settings.rhos
-                                                        ]
-            settings.data['Gaussian']['kwargs'] = [
-                                                    {
-                                                        'n_samples':pop_, 
-                                                        'mean1':0, 
-                                                        'mean2':0, 
-                                                        'rho': rho,
-                                                    } for rho in settings.rhos
-                                                ]
-            settings.data['Mixed Uniform']['kwargs'] = [
-                                                        {
-                                                            'n_samples':pop_, 
-                                                            'width_a': width, 
-                                                            'width_b': width, 
-                                                            'mix': 0.5
-                                                        } for width in settings.widths
-                                                    ]
-
-            while True:
-                if os.path.exists(experiment_path):
-                    experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
-                    experiment_path = os.path.join(settings.output_path, experiment_name)
-                else:
-                    os.makedirs(experiment_path)
-                    print('Output will be saved into {}'.format(experiment_path))
-                    # save the settings
-                    from shutil import copyfile
-                    mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
-                    settings_path = os.path.join(mmi_dir_path, 'settings.py')
-                    copyfile(settings_path, os.path.join(experiment_path, 'settings.py'))
-                    break     
-            plot(experiment_path)
 
 if __name__ == "__main__":
     run_experiment()
