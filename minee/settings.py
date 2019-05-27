@@ -56,56 +56,97 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=1,
-            load_dict=True
+            ref_batch_factor=10,
+            load_dict=True,
+            rep=2,
+            fix_ref_est=True,
+            resample_each_rep=True
         ), 
         'color': 'purple'
     },
-    'MINEE_ref=2x': {
-        'model': Minee(
+    'MINE_hidden=100': {
+        'model': Mine(
             lr=lr, 
             batch_size=batch_size,
+            ma_rate=moving_average_rate,
             hidden_size=hidden_size,
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
             verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=2,
-            load_dict=True
-        ), 
-        'color': 'purple'
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=2,
+            fix_ref_est=False,
+            resample_each_rep=True 
+        ),
+        'color': 'orange'
     },
-    'MINEE_ref=4x': {
-        'model': Minee(
+    'MINE_hidden=300': {
+        'model': Mine(
             lr=lr, 
             batch_size=batch_size,
-            hidden_size=hidden_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
             verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=4,
-            load_dict=True
-        ), 
-        'color': 'purple'
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=2,
+            fix_ref_est=False,
+            resample_each_rep=True
+        ),
+        'color': 'magenta'
     },
-    'MINEE_ref=16x': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=16,
-            load_dict=True
-        ), 
-        'color': 'purple'
-    },
+    # 'MINEE_ref=2x': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=2,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
+    # 'MINEE_ref=4x': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=4,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
+    # 'MINEE_ref=16x': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=16,
+    #         load_dict=True
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
@@ -121,7 +162,7 @@ model = {
     #     ),
     #     'color': 'orange'
     # },
-    'MINE_hidden=300': {
+    'MINE': {
         'model': Mine(
             lr=lr, 
             batch_size=batch_size,
@@ -131,8 +172,12 @@ model = {
             iter_num=iter_num,
             log=True,
             verbose=False,
-            full_ref=True,
-            load_dict=True
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=2,
+            fix_ref_est=False,
+            resample_each_rep=True
         ),
         'color': 'magenta'
     },
@@ -140,14 +185,14 @@ model = {
 
 sample_size = 200
 rhos = [ 
-    0, 
-    0.2, 
-    0.4, 
-    0.6, 
-    0.8, 
+    # 0, 
+    # 0.2, 
+    # 0.4, 
+    # 0.6, 
+    # 0.8, 
     0.9, 
-    0.95, 
-    0.99 
+    # 0.95, 
+    # 0.99 
     ]
 # rhos = [0.9]
 widths = [
@@ -174,54 +219,54 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    # 'Gaussian': {
+    'Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':[0,0], 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
+    # '2-Dimension Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [
     #         {
     #             'sample_size':sample_size, 
     #             'rho': rho,
-    #             'mean':[0,0], 
+    #             'mean':np.zeros(4).tolist(), 
     #         } for rho in rhos
     #     ], 
     #     'varying_param_name': 'rho', 
     #     'x_axis_name': 'correlation', 
     # },
-    '2-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(4).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    '4-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(8).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
-    '4-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(8).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # '4-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(8).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
+    # '4-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(8).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # '20-Dimension Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [

@@ -52,6 +52,62 @@ model = {
     #         verbose=False,
     #         ref_window_scale=1,
     #         ref_batch_factor=10,
+    #         load_dict=True,
+    #         rep=10,
+    #         fix_ref_est=True,
+    #         resample_each_rep=True
+    #     ), 
+    #     'color': 'purple'
+    # },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         resample_each_rep=True 
+    #     ),
+    #     'color': 'orange'
+    # },
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=10,
+            fix_ref_est=False,
+            resample_each_rep=True
+        ),
+        'color': 'magenta'
+    },
+    # 'MINEE': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=10,
     #         load_dict=True
     #     ), 
     #     'color': 'purple'
@@ -71,21 +127,21 @@ model = {
     #     ),
     #     'color': 'orange'
     # },
-    'MINE_hidden=300': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size*3,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True
-        ),
-        'color': 'magenta'
-    },
+    # 'MINE_hidden=300': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size*3,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True
+    #     ),
+    #     'color': 'magenta'
+    # },
 }
 
 sample_size = 200
