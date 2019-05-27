@@ -55,12 +55,26 @@ def getResultPlot(ax, xs, z=None, sampleNum=0):
 #     ax.legend()
 #     return ax
 
-def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[]):
-    ax.plot(range(1,len(train_loss)+1),train_loss, label='Training')
-    if len(valid_loss) > 0:
-        ax.plot(range(1,len(valid_loss)+1),valid_loss,label='Validation')
-    if type(ground_truth)==float or type(ground_truth)==np.float64:
-        ax.plot(range(1,len(train_loss)+1), ground_truth*np.ones(len(train_loss)),label='ground truth')
+def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[], ma_rate=1):
+    x = list(range(1,len(train_loss)+1))
+    if type(train_loss) == np.ndarray and train_loss.ndim == 2:
+        x = list(range(1,len(train_loss[0,:])+1))
+        if ma_rate < 1 and ma_rate > 0:
+            curve = train_loss.copy()
+            for  i in range(1, train_loss.shape[1]):
+                curve[:,i] = (1-ma_rate) * curve[:,i-1] + ma_rate * curve[:,i]
+        else:
+            curve  = train_loss
+        for j in range(train_loss.shape[0]):
+            ax.plot(x,curve[j,:], label="MI_{}".format(j))
+        if type(ground_truth)==float or type(ground_truth)==np.float64:
+            ax.plot(x, ground_truth*np.ones(len(train_loss[0,:])),label='ground truth')
+    else:
+        ax.plot(x,train_loss, label='Training')
+        if len(valid_loss) > 0:
+            ax.plot(range(1,len(valid_loss)+1),valid_loss,label='Validation')
+        if type(ground_truth)==float or type(ground_truth)==np.float64:
+            ax.plot(x, ground_truth*np.ones(len(train_loss)),label='ground truth')
     if show_min:
         # find position of lowest validation loss
         minposs = valid_loss.index(min(valid_loss))+1 
