@@ -51,10 +51,10 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=10,
+            ref_batch_factor=1,
             load_dict=True,
             rep=10,
-            fix_ref_est=True,
+            fix_ref_est=False,
             resample_each_rep=True
         ), 
         'color': 'purple'

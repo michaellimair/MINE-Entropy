@@ -116,7 +116,7 @@ class Minee():
                 print('results loaded from '+fname)
 
         self.log_ref_size = float(np.log(int(Train_X.shape[0]*self.ref_batch_factor)))
-        self.log_batch_size = float(np.log(self.batch_size))
+        self.log_batch_size = float(np.log(self.batch_size*self.ref_batch_factor))
 
         # For MI estimate
         self.XYlist_ref_t = []
