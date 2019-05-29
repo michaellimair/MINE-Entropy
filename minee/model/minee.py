@@ -39,7 +39,7 @@ class MineNet(nn.Module):
         return output
 
 class Minee():
-    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False):
+    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0):
         self.lr = lr
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -55,12 +55,8 @@ class Minee():
         self.load_dict = load_dict
         self.rep = rep
         self.fix_ref_est = fix_ref_est
+        self.archive_length = archive_length
 
-    # def fit(self, Train_X, Train_Y, Test_X, Test_Y):
-    #     self.Train_X = Train_X
-    #     self.Train_Y = Train_Y
-    #     self.Test_X = Test_X
-    #     self.Test_Y = Test_Y
     def fit(self, data_model):
         data_train = data_model.data
         data_test = data_model.data
@@ -100,6 +96,7 @@ class Minee():
             log.write("fix_ref_est={0}\n".format(self.fix_ref_est))
             log.write("dim={0}\n".format(self.dim))
             log.write("sample_size={0}\n".format(self.sample_size))
+            log.write("archive_length={0}\n".format(self.archive_length))
             log.close()
 
         self.XYlist_net = []
@@ -127,6 +124,9 @@ class Minee():
         snapshot_i = 0
         # set starting iter_num
         start_i = 0
+        self.array_start = 0
+        self.Train_start_ma = 0
+        self.Test_start_ma = 0
         fname = os.path.join(self.prefix, "cache.pt")
         if self.load_dict and os.path.exists(fname):
             state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
@@ -178,6 +178,9 @@ class Minee():
                             print('results saved: '+str(snapshot_i))
                 snapshot_i += 1
 
+            if self.archive_length>0 and (i+1)%self.archive_length==0:
+                self.save_array()
+
         # To save new results to a db file using the following code, delete the existing db file.
         fname = os.path.join(self.prefix, "cache_iter={}.pt".format(self.iter_num))
         if not os.path.exists(fname):
@@ -227,7 +230,6 @@ class Minee():
             self.Ylist_optimizer[i].step()    
 
     def get_estimate(self, X, Y):
-
         dXY_list = np.zeros((self.rep, 1))
         dY_list = np.zeros((self.rep, 1))
         dX_list = np.zeros((self.rep, 1))
@@ -256,14 +258,81 @@ class Minee():
 
         return dXY_list, dX_list, dY_list
 
-    # def predict(self, Train_X, Train_Y, Test_X, Test_Y):
-    #     Train_X, Train_Y = np.array(Train_X), np.array(Train_Y)
-    #     Test_X, Test_Y = np.array(Test_X), np.array(Test_Y)
-    #     self.fit(Train_X,Train_Y, Test_X, Test_Y)
+
+    def save_array(self):
+        array_end = self.array_start + self.Train_dXY_list.shape[1]
+        fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(self.array_start, array_end))
+        with open(fname, 'wb') as f:
+            torch.save(self.array_state_dict(),f)
+            if self.verbose:
+                print("array archived")
+            Train_mi_list = self.Train_dXY_list - self.Train_dX_list - self.Train_dY_list
+            Train_ma = plot_util.Moving_average(Train_mi_list, ma_rate=0.01, start=self.Train_start_ma)
+            self.Train_start_ma = Train_ma[:,-1]
+            Test_mi_list = self.Test_dXY_list - self.Test_dX_list - self.Test_dY_list
+            Test_ma = plot_util.Moving_average(Test_mi_list, ma_rate=0.01, start=self.Test_start_ma)
+            self.Test_start_ma = Test_ma[:,-1]
+            self.array_start = array_end
+            self.Train_dXY_list = np.zeros((self.rep, 0))
+            self.Test_dXY_list = np.zeros((self.rep, 0))
+            self.Train_dX_list = np.zeros((self.rep, 0))
+            self.Test_dX_list = np.zeros((self.rep, 0))
+            self.Train_dY_list = np.zeros((self.rep, 0))
+            self.Test_dY_list = np.zeros((self.rep, 0))
+
+    def load_all_array(self):
+        fname = os.path.join(self.prefix, "cache.pt")
+        if self.load_dict and os.path.exists(fname):
+            state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
+            self.load_state_dict(state_dict)
+        start = 0
+        end = self.archive_length + start
+        fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(start, end))
+        Train_dXY_list = np.zeros((self.rep, 0))
+        Test_dXY_list = np.zeros((self.rep, 0))
+        Train_dX_list = np.zeros((self.rep, 0))
+        Test_dX_list = np.zeros((self.rep, 0))
+        Train_dY_list = np.zeros((self.rep, 0))
+        Test_dY_list = np.zeros((self.rep, 0))
+        while(os.path.exists(fname)):
+            state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
+            start = self.archive_length + start
+            end = self.archive_length + start
+            fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(start, end))
+            Train_dXY_list = np.append(Train_dXY_list, state_dict['Train_dXY_list'], axis=1)
+            Test_dXY_list = np.append(Test_dXY_list, state_dict['Test_dXY_list'], axis=1)
+            Train_dX_list = np.append(Train_dX_list, state_dict['Train_dX_list'], axis=1)
+            Test_dX_list = np.append(Test_dX_list, state_dict['Test_dX_list'], axis=1)
+            Train_dY_list = np.append(Train_dY_list, state_dict['Train_dY_list'], axis=1)
+            Test_dY_list = np.append(Test_dY_list, state_dict['Test_dY_list'], axis=1)
+        
+        if self.Train_dXY_list.shape[1]>=0 and self.array_start==start:
+            self.Train_dXY_list = np.append(Train_dXY_list, self.Train_dXY_list, axis=1)
+        
+        if self.Test_dXY_list.shape[1]>=0 and self.array_start==start:
+            self.Test_dXY_list = np.append(Test_dXY_list, self.Test_dXY_list, axis=1)
+        
+        if self.Train_dX_list.shape[1]>=0 and self.array_start==start:
+            self.Train_dX_list = np.append(Train_dX_list, self.Train_dX_list, axis=1)
+        
+        if self.Test_dX_list.shape[1]>=0 and self.array_start==start:
+            self.Test_dX_list = np.append(Test_dX_list, self.Test_dX_list, axis=1)
+        
+        if self.Train_dY_list.shape[1]>=0 and self.array_start==start:
+            self.Train_dY_list = np.append(Train_dY_list, self.Train_dY_list, axis=1)
+        
+        if self.Test_dY_list.shape[1]>=0 and self.array_start==start:
+            self.Test_dY_list = np.append(Test_dY_list, self.Test_dY_list, axis=1)
+        self.array_start = 0
+            
+        
     def predict(self, data_model):
         self.fit(data_model)
 
-        mi_lb = np.average(self.Train_dXY_list[:,-1]) - np.average(self.Train_dY_list[:,-1]) - np.average(self.Train_dX_list[:,-1])
+        if self.archive_length>0 and self.Train_dXY_list.shape[1]==0:
+            mi_lb = np.average(self.Train_start_ma)
+        else:
+            mi_lb = np.average(self.Train_dXY_list[:,-1] - self.Train_dY_list[:,-1] - self.Train_dX_list[:,-1])
 
         if self.log:
             self.save_figure(suffix="iter={}".format(self.iter_num))
@@ -361,6 +430,9 @@ class Minee():
         else:
             fig, ax = plt.subplots(3,4, figsize=(90, 45))
             axCur = ax[0,0]
+            start = self.array_start
+            length = self.Train_dXY_list.shape[1]
+            x = list(range(start+1,start+length+1))
             for i in range(self.rep):
                 axCur.plot(self.Train_dXY_list[i,:], label="XY_{}".format(i))
             axCur.legend()
@@ -370,7 +442,7 @@ class Minee():
 
             axCur = ax[0,1]
             for i in range(self.rep):
-                axCur.plot(self.Test_dXY_list[i,:], label="XY_{}".format(i))
+                axCur.plot(x, self.Test_dXY_list[i,:], label="XY_{}".format(i))
             axCur.legend()
             axCur.set_xlabel("number of iterations")
             axCur.set_ylabel('divergence estimates')
@@ -378,7 +450,7 @@ class Minee():
             
             axCur = ax[0,2]
             for i in range(self.rep):
-                axCur.plot(self.Train_dX_list[i,:], label="X_{}".format(i))
+                axCur.plot(x, self.Train_dX_list[i,:], label="X_{}".format(i))
             axCur.legend()
             axCur.set_xlabel("number of iterations")
             axCur.set_ylabel('divergence estimates')
@@ -386,7 +458,7 @@ class Minee():
 
             axCur = ax[0,3]
             for i in range(self.rep):
-                axCur.plot(self.Test_dX_list[i,:], label="X_{}".format(i))
+                axCur.plot(x, self.Test_dX_list[i,:], label="X_{}".format(i))
             axCur.legend()
             axCur.set_xlabel("number of iterations")
             axCur.set_ylabel('divergence estimates')
@@ -394,7 +466,7 @@ class Minee():
             
             axCur = ax[1,0]
             for i in range(self.rep):
-                axCur.plot(self.Train_dY_list[i,:], label="Y_{}".format(i))
+                axCur.plot(x, self.Train_dY_list[i,:], label="Y_{}".format(i))
             axCur.legend()
             axCur.set_xlabel("number of iterations")
             axCur.set_ylabel('divergence estimates')
@@ -402,7 +474,7 @@ class Minee():
 
             axCur = ax[1,1]
             for i in range(self.rep):
-                axCur.plot(self.Test_dY_list[i,:], label="Y_{}".format(i))
+                axCur.plot(x, self.Test_dY_list[i,:], label="Y_{}".format(i))
             axCur.legend()
             axCur.set_xlabel("number of iterations")
             axCur.set_ylabel('divergence estimates')
@@ -412,28 +484,30 @@ class Minee():
             axCur = ax[1,2]
             Train_mi_lb = self.Train_dXY_list.copy()
             Train_mi_lb = Train_mi_lb-self.Train_dX_list-self.Train_dY_list
-            axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth)
+            axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of training data mutual information')
 
             #plot mi_lb curve
             axCur = ax[1,3]
             Test_mi_lb = self.Test_dXY_list.copy()
             Test_mi_lb = Test_mi_lb-self.Test_dX_list-self.Test_dY_list
-            axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth)
+            axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of testing data mutual information')
 
             #plot mi_lb curve
             axCur = ax[2,2]
             Train_mi_lb = self.Train_dXY_list.copy()
             Train_mi_lb = Train_mi_lb-self.Train_dX_list-self.Train_dY_list
-            axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, ma_rate=0.01)
+            Train_mi_lb = plot_util.Moving_average(Train_mi_lb, ma_rate=0.01, start=self.Train_start_ma)
+            axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of training data mutual information with 0.01 ma')
 
             #plot mi_lb curve
             axCur = ax[2,3]
             Test_mi_lb = self.Test_dXY_list.copy()
             Test_mi_lb = Test_mi_lb-self.Test_dX_list-self.Test_dY_list
-            axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, ma_rate=0.01)
+            Test_mi_lb = plot_util.Moving_average(Test_mi_lb, ma_rate=0.01, start=self.Test_start_ma)
+            axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of testing data mutual information with 0.01 ma')
 
 
@@ -462,7 +536,10 @@ class Minee():
             'Train_dY_list' :self.Train_dY_list,
             'Test_dXY_list' :self.Test_dXY_list,
             'Test_dX_list' :self.Test_dX_list,
-            'Test_dY_list' :self.Test_dY_list
+            'Test_dY_list' :self.Test_dY_list,
+            'array_start': self.array_start,
+            'Train_start_ma': self.Train_start_ma,
+            'Test_start_ma': self.Test_start_ma
         }
 
     def load_state_dict(self, state_dict):
@@ -490,3 +567,21 @@ class Minee():
         self.Test_dXY_list = state_dict['Test_dXY_list']
         self.Test_dX_list = state_dict['Test_dX_list']
         self.Test_dY_list = state_dict['Test_dY_list']
+        if 'array_start' in state_dict:
+            self.array_start = state_dict['array_start']
+        if 'Test_start_ma' in state_dict:
+            self.Test_start_ma = state_dict['Test_start_ma']
+        if 'Train_start_ma' in state_dict:
+            self.Train_start_ma = state_dict['Train_start_ma']
+
+    def array_state_dict(self):
+        return {
+            'Train_dXY_list' : self.Train_dXY_list,
+            'Test_dXY_list' : self.Test_dXY_list,
+            'Train_start_ma': self.Train_start_ma,
+            'Test_start_ma': self.Test_start_ma,
+            'Train_dY_list' : self.Train_dY_list,
+            'Test_dY_list' : self.Test_dY_list,
+            'Train_dX_list' : self.Train_dX_list,
+            'Test_dX_list' : self.Test_dX_list
+        }

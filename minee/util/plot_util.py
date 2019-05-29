@@ -55,18 +55,21 @@ def getResultPlot(ax, xs, z=None, sampleNum=0):
 #     ax.legend()
 #     return ax
 
-def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[], ma_rate=1):
-    x = list(range(1,len(train_loss)+1))
+def Moving_average(array, ma_rate, start):
+    ma_array = array.copy()
+    np.insert(ma_array, 0, start, axis=1)
+    if ma_rate < 1 and ma_rate > 0:
+        for  i in range(1, array.shape[1]):
+            ma_array[:,i] = (1-ma_rate) * ma_array[:,i-1] + ma_rate * ma_array[:,i]
+    return ma_array[:,1:]
+
+
+def getTrainCurve(train_loss, valid_loss, ax, show_min=True, ground_truth=[], start=0):
+    x = list(range(start+1,start+len(train_loss)+1))
     if type(train_loss) == np.ndarray and train_loss.ndim == 2:
-        x = list(range(1,len(train_loss[0,:])+1))
-        if ma_rate < 1 and ma_rate > 0:
-            curve = train_loss.copy()
-            for  i in range(1, train_loss.shape[1]):
-                curve[:,i] = (1-ma_rate) * curve[:,i-1] + ma_rate * curve[:,i]
-        else:
-            curve  = train_loss
+        x = list(range(start+1,start+len(train_loss[0,:])+1))
         for j in range(train_loss.shape[0]):
-            ax.plot(x,curve[j,:], label="MI_{}".format(j))
+            ax.plot(x,train_loss[j,:], label="MI_{}".format(j))
         if type(ground_truth)==float or type(ground_truth)==np.float64:
             ax.plot(x, ground_truth*np.ones(len(train_loss[0,:])),label='ground truth')
     else:

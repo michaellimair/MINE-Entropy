@@ -59,28 +59,30 @@ model = {
             ref_batch_factor=1,
             load_dict=True,
             rep=2,
-            fix_ref_est=False
+            fix_ref_est=False,
+            archive_length=250
         ), 
         'color': 'purple'
     },
-    'MINE_hidden=100': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True,
-            ref_factor=1,
-            rep=2,
-            fix_ref_est=False
-        ),
-        'color': 'orange'
-    },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=2,
+    #         fix_ref_est=False,
+    #         archive_length=250
+    #     ),
+    #     'color': 'orange'
+    # },
     # 'MINE_hidden=300': {
     #     'model': Mine(
     #         lr=lr, 
