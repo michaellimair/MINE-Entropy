@@ -54,7 +54,8 @@ model = {
     #         ref_batch_factor=1,
     #         load_dict=True,
     #         rep=10,
-    #         fix_ref_est=False
+    #         fix_ref_est=False,
+    #         archive_length=5000
     #     ), 
     #     'color': 'purple'
     # },
@@ -72,7 +73,8 @@ model = {
             load_dict=True,
             ref_factor=1,
             rep=10,
-            fix_ref_est=False
+            fix_ref_est=False,
+            archive_length=5000
         ),
         'color': 'orange'
     },
@@ -90,7 +92,8 @@ model = {
     #         load_dict=True,
     #         ref_factor=1,
     #         rep=10,
-    #         fix_ref_est=False
+    #         fix_ref_est=False,
+    #         archive_length=5000
     #     ),
     #     'color': 'magenta'
     # },

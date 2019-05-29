@@ -97,7 +97,8 @@ model = {
     #         load_dict=True,
     #         ref_factor=1,
     #         rep=2,
-    #         fix_ref_est=False
+    #         fix_ref_est=False,
+    #         archive_length=5000
     #     ),
     #     'color': 'magenta'
     # },
@@ -175,7 +176,8 @@ model = {
     #         load_dict=True,
     #         ref_factor=1,
     #         rep=2,
-    #         fix_ref_est=False
+    #         fix_ref_est=False,
+    #         archive_length=5000
     #     ),
     #     'color': 'magenta'
     # },
