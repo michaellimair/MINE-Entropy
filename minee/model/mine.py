@@ -48,7 +48,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=True, resample_each_rep=True):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=False):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -65,13 +65,27 @@ class Mine():
         self.ref_factor = ref_factor
         self.rep = rep
         self.fix_ref_est = fix_ref_est
-        self.resample_each_rep = resample_each_rep
 
-    def fit(self, Train_X, Train_Y, Test_X, Test_Y):
-        self.Train_X = Train_X
-        self.Train_Y = Train_Y
-        self.Test_X = Test_X
-        self.Test_Y = Test_Y
+    def fit(self, data_model):
+        data_train = data_model.data
+        data_test = data_model.data
+        if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
+            raise ValueError("dim of data should be even")
+        self.sample_size = data_train.shape[0]
+        self.dim = data_train.shape[1]//2
+        self.Trainlist_X = []
+        self.Trainlist_Y = []
+        self.Testlist_X = []
+        self.Testlist_Y = []
+        for i in range(self.rep):
+            if i > 0:
+                data_train = data_model.data
+                data_test = data_model.data
+            self.Trainlist_X.append(data_train[:,0:data_train.shape[1]//2].copy())
+            self.Trainlist_Y.append(data_train[:,-data_train.shape[1]//2:].copy())
+            self.Testlist_X.append(data_test[:,0:data_test.shape[1]//2].copy())
+            self.Testlist_Y.append(data_test[:,-data_test.shape[1]//2:].copy())
+
 
         if self.log:
             log_file = os.path.join(self.prefix, "{}_train.log".format(self.model_name))
@@ -91,14 +105,15 @@ class Mine():
             log.write("ref_factor={0}\n".format(self.ref_factor))
             log.write("rep={0}\n".format(self.rep))
             log.write("fix_ref_est={0}\n".format(self.fix_ref_est))
-            log.write("resample_each_rep={0}\n".format(self.resample_each_rep))
+            log.write("dim={0}\n".format(self.dim))
+            log.write("sample_size={0}\n".format(self.sample_size))
             log.close()
 
 
         self.XYlist_net = []
         self.XYlist_optimizer = []
         for i in range(self.rep):
-            self.XYlist_net.append(MineNet(input_size=self.Train_X.shape[1]+self.Train_Y.shape[1],hidden_size=self.hidden_size))
+            self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
             self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
 
         self.Train_dXY_list = np.zeros((self.rep, 0))
@@ -115,41 +130,31 @@ class Mine():
             if self.verbose:
                 print('results loaded from '+fname)
 
-        self.XY_t = torch.Tensor(np.concatenate((self.Train_X,self.Train_Y),axis=1))
-
-        self.XYlist_ref_t = []
-        self.XY_ref_t_log_size = float(np.log(self.Train_Y.shape[0]*self.ref_factor))
+        self.XY_ref_t_log_size = float(np.log(self.sample_size*self.ref_factor))
         if self.full_ref:
-            Train_X_ref, Train_Y_ref = np.meshgrid(self.Train_X, self.Train_Y.T)
-            if len(self.Train_X.shape)==1:
-                Train_X_ref = Train_X_ref.flatten()[:,None]
-                Train_Y_ref = Train_Y_ref.flatten()[:,None]
-            elif len(self.Train_X.shape)==2:
-                Train_X_ref = Train_X_ref[:self.Train_X.shape[0],:].reshape((self.Train_X.shape[0]**2), self.Train_X.shape[1])
-                Train_Y_ref = Train_Y_ref[:,:self.Train_X.shape[0]].reshape(self.Train_X.shape[1], (self.Train_X.shape[0]**2)).T
-            self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
-            self.XY_ref_t_log_size = float(np.log(self.Train_X_ref.shape[0]))
-        elif self.fix_ref_est:
-            for i in range(self.rep):
-                if self.ref_factor > 1:
-                    Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=True)
-                    Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=True)
-                else:
-                    Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=False)
-                    Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=False)
-                self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
+            self.XY_ref_t_log_size = float(2*np.log(self.sample_size))
+        self.XYlist_t = []
+        self.XYlist_ref_t = []
+        for i in range(self.rep):
+            self.XYlist_t.append(torch.Tensor(np.concatenate((self.Trainlist_X[i],self.Trainlist_Y[i]),axis=1)))
 
-        # # Plot data and ref for MI estimate
-        # plt.scatter(self.Train_X,self.Train_Y)
-        # plt.scatter(Train_X_ref,Train_Y_ref,label="ref",marker="_",color="darkorange")
-        # plt.scatter(self.Train_X,self.Train_Y,label="data",marker="+",color="steelblue")
-        # plt.xlabel('X')
-        # plt.ylabel('Y')
-        # plt.title('Plot of all data samples and reference samples')
-        # plt.legend()
-        # figName = os.path.join(self.prefix, "Data and Reference in MI estimate.png")
-        # plt.savefig(figName)
-        # plt.close()
+            if self.full_ref:
+                Train_X_ref, Train_Y_ref = np.meshgrid(self.Trainlist_X[i], self.Trainlist_Y[i].T)
+                if len(self.Trainlist_X[i].shape)==1:
+                    Train_X_ref = Train_X_ref.flatten()[:,None]
+                    Train_Y_ref = Train_Y_ref.flatten()[:,None]
+                elif len(self.Trainlist_X[i].shape)==2:
+                    Train_X_ref = Train_X_ref[:self.sample_size,:].reshape((self.sample_size**2), self.dim)
+                    Train_Y_ref = Train_Y_ref[:,:self.sample_size].reshape(self.dim, (self.sample_size**2)).T
+                self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
+            elif self.fix_ref_est:
+                if self.ref_factor > 1:
+                    Train_X_ref = resample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_factor), replace=True)
+                    Train_Y_ref = resample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_factor), replace=True)
+                else:
+                    Train_X_ref = resample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_factor), replace=False)
+                    Train_Y_ref = resample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_factor), replace=False)
+                self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
 
         if type(self.Train_dXY_list)==np.ndarray and self.Train_dXY_list.ndim == 2 and len(self.Train_dXY_list[0,:]) > 0:
             start_i = len(self.Train_dXY_list[0,:]) + 1
@@ -157,11 +162,11 @@ class Mine():
                 if self.snapshot[i] <= start_i:
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
-            self.update_mine_net(self.Train_X, self.Train_Y, self.batch_size, self.ma_rate)
-            Train_dXY = self.get_estimate(self.Train_X, self.Train_Y)
+            self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size, self.ma_rate)
+            Train_dXY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
             self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
 
-            Test_dXY = self.get_estimate(self.Test_X, self.Test_Y)
+            Test_dXY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
             self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
 
             if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
@@ -185,13 +190,12 @@ class Mine():
 
 
 
-    def update_mine_net(self, Train_X, Train_Y, batch_size, ma_rate):
-        batch_XY = resample(self.XY_t,batch_size=batch_size)
-        batch_XY_ref = torch.Tensor(np.concatenate((resample(Train_X,batch_size=batch_size),                                                         resample(Train_Y,batch_size=batch_size)),axis=1))
+    def update_mine_net(self, X, Y, batch_size, ma_rate):
         for i in range(self.rep):
-            if i>0 and self.resample_each_rep:
-                batch_XY = resample(self.XY_t,batch_size=batch_size)
-                batch_XY_ref = torch.Tensor(np.concatenate((resample(Train_X,batch_size=batch_size), resample(Train_Y,batch_size=batch_size)),axis=1))
+            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
+            batch_XY = resample(XY_t,batch_size=batch_size)
+
+            batch_XY_ref = torch.Tensor(np.concatenate((resample(X[i],batch_size=batch_size),                                                         resample(Y[i],batch_size=batch_size)),axis=1))
             self.XYlist_optimizer[i].zero_grad()
             fXY = self.XYlist_net[i](batch_XY)
             efXY_ref = torch.exp(self.XYlist_net[i](batch_XY_ref))
@@ -204,38 +208,34 @@ class Mine():
     def get_estimate(self, X, Y):
         dXY_list = np.zeros((self.rep, 1))
         for i in range(self.rep):
-            if self.full_ref:
-                XY_ref_t = self.XYlist_ref_t[0]
-            elif self.fix_ref_est:
+            if self.full_ref or self.fix_ref_est:
                 XY_ref_t = self.XYlist_ref_t[i]
             else:
                 if self.ref_factor > 1:
-                    Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=True)
-                    Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=True)
+                    X_ref = resample(X[i],batch_size=int(self.sample_size*self.ref_factor), replace=True)
+                    Y_ref = resample(Y[i],batch_size=int(self.sample_size*self.ref_factor), replace=True)
                 else:
-                    Train_X_ref = resample(self.Train_X,batch_size=int(self.Train_X.shape[0]*self.ref_factor), replace=False)
-                    Train_Y_ref = resample(self.Train_Y,batch_size=int(self.Train_Y.shape[0]*self.ref_factor), replace=False)
-                XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
+                    X_ref = resample(X[i],batch_size=int(self.sample_size*self.ref_factor), replace=False)
+                    Y_ref = resample(Y[i],batch_size=int(self.sample_size*self.ref_factor), replace=False)
+                XY_ref_t = torch.Tensor(np.concatenate((X_ref,Y_ref),axis=1))
 
-            XY_t = torch.Tensor(np.concatenate((X,Y),axis=1))
+            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
 
             dXY = torch.mean(self.XYlist_net[i](XY_t)) - (torch.logsumexp(self.XYlist_net[i](XY_ref_t), 0) - self.XY_ref_t_log_size)
             dXY_list[i, 0] = dXY.cpu().item()
         return dXY_list
 
-    def predict(self, Train_X, Train_Y, Test_X, Test_Y):
-        Train_X, Train_Y = np.array(Train_X), np.array(Train_Y)
-        Test_X, Test_Y = np.array(Test_X), np.array(Test_Y)
-        self.fit(Train_X,Train_Y, Test_X, Test_Y)
+    def predict(self, data_model):
+        self.fit(data_model)
 
         mi_lb = np.average(self.Train_dXY_list[:,-1])
 
         if self.log:
             self.save_figure(suffix="iter={}".format(self.iter_num))
-        self.Train_X = []
-        self.Train_Y = []
-        self.Test_X = []
-        self.Test_Y = []
+        self.Trainlist_X = []
+        self.Trainlist_Y = []
+        self.Testlist_X = []
+        self.Testlist_Y = []
 
         self.XYlist_net = []
         self.XYlist_optimizer = []
@@ -261,11 +261,11 @@ class Mine():
         axCur.set_title('curve of testing data mutual information')
 
         # Trained Function contour plot
-        if len(self.XYlist_net) == 1 and self.Train_X.shape[1] == 1 and self.Train_Y.shape[1] == 1:
-            Xmax = self.Train_X.max()
-            Xmin = self.Train_X.min()
-            Ymax = self.Train_Y.max()
-            Ymin = self.Train_Y.min()
+        if len(self.XYlist_net) == 1 and len(self.Trainlist_X) == 1 and self.Trainlist_X[0].shape[1] == 1 and self.Trainlist_Y[0].shape[1] == 1:
+            Xmax = self.Trainlist_X[0].max()
+            Xmin = self.Trainlist_X[0].min()
+            Ymax = self.Trainlist_Y[0].max()
+            Ymin = self.Trainlist_Y[0].min()
             x = np.linspace(Xmin, Xmax, 300)
             y = np.linspace(Ymin, Ymax, 300)
             xs, ys = np.meshgrid(x,y)
@@ -280,8 +280,8 @@ class Mine():
             axCur.set_title('heatmap of i(x,y)')
 
             axCur = ax[3]
-            axCur.scatter(self.Train_X, self.Train_Y, color='red', marker='o', label='train')
-            axCur.scatter(self.Test_X, self.Test_Y, color='green', marker='x', label='test')
+            axCur.scatter(self.Trainlist_X[0], self.Trainlist_Y[0], color='red', marker='o', label='train')
+            axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
             axCur.set_title('Plot of all train data samples and test data samples')
             axCur.legend()
         else:
@@ -308,10 +308,10 @@ class Mine():
             'Test_dXY_list' : self.Test_dXY_list,
             'XYlist_net': self.XYlist_net,
             'XYlist_optimizer': self.XYlist_optimizer,
-            'Train_X': self.Train_X,
-            'Train_Y': self.Train_Y,
-            'Test_X': self.Test_X,
-            'Test_Y': self.Test_Y,
+            'Trainlist_X': self.Trainlist_X,
+            'Trainlist_Y': self.Trainlist_Y,
+            'Testlist_X': self.Testlist_X,
+            'Testlist_Y': self.Testlist_Y,
             'lr': self.lr,
             'batch_size': self.batch_size,
             'ma_rate': self.ma_rate,
@@ -321,10 +321,10 @@ class Mine():
     def load_state_dict(self, state_dict):
         self.XYlist_net = state_dict['XYlist_net']
         self.XYlist_optimizer = state_dict['XYlist_optimizer']
-        self.Train_X = state_dict['Train_X']
-        self.Train_Y = state_dict['Train_Y']
-        self.Test_X = state_dict['Test_X']
-        self.Test_Y = state_dict['Test_Y']
+        self.Trainlist_X = state_dict['Trainlist_X']
+        self.Trainlist_Y = state_dict['Trainlist_Y']
+        self.Testlist_X = state_dict['Testlist_X']
+        self.Testlist_Y = state_dict['Testlist_Y']
         self.lr = state_dict['lr']
         self.batch_size = state_dict['batch_size']
         self.ma_rate = state_dict['ma_rate']

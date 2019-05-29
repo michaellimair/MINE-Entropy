@@ -56,11 +56,10 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=10,
+            ref_batch_factor=1,
             load_dict=True,
             rep=2,
-            fix_ref_est=True,
-            resample_each_rep=True
+            fix_ref_est=False
         ), 
         'color': 'purple'
     },
@@ -78,30 +77,28 @@ model = {
             load_dict=True,
             ref_factor=1,
             rep=2,
-            fix_ref_est=False,
-            resample_each_rep=True 
+            fix_ref_est=False
         ),
         'color': 'orange'
     },
-    'MINE_hidden=300': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size*3,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True,
-            ref_factor=1,
-            rep=2,
-            fix_ref_est=False,
-            resample_each_rep=True
-        ),
-        'color': 'magenta'
-    },
+    # 'MINE_hidden=300': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size*3,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=2,
+    #         fix_ref_est=False
+    #     ),
+    #     'color': 'magenta'
+    # },
     # 'MINEE_ref=2x': {
     #     'model': Minee(
     #         lr=lr, 
@@ -162,25 +159,24 @@ model = {
     #     ),
     #     'color': 'orange'
     # },
-    'MINE': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size*3,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True,
-            ref_factor=1,
-            rep=2,
-            fix_ref_est=False,
-            resample_each_rep=True
-        ),
-        'color': 'magenta'
-    },
+    # 'MINE': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size*3,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=2,
+    #         fix_ref_est=False
+    #     ),
+    #     'color': 'magenta'
+    # },
 }
 
 sample_size = 200
@@ -205,20 +201,20 @@ widths = [
 
 
 data = {
-    # 'Mixed Gaussian': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':0, 
-    #             'mean2':0, 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    'Mixed Gaussian': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':0, 
+                'mean2':0, 
+                'rho1': rho, 
+                'rho2': -rho,
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     'Gaussian': {
         'model': Gaussian, 
         'kwargs': [
@@ -279,19 +275,19 @@ data = {
     #     'varying_param_name': 'rho', 
     #     'x_axis_name': 'correlation', 
     # },
-    # 'Mixed Uniform': {
-    #     'model': MixedUniform, 
-    #     'kwargs': [
-    #         {
-    #             'sample_size':sample_size, 
-    #             'width_a': width, 
-    #             'width_b': width, 
-    #             'mix': 0.5
-    #         } for width in widths
-    #     ], 
-    #     'varying_param_name': 'width_a', 
-    #     'x_axis_name': 'width'
-    # }, 
+    'Mixed Uniform': {
+        'model': MixedUniform, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'width_a': width, 
+                'width_b': width, 
+                'mix': 0.5
+            } for width in widths
+        ], 
+        'varying_param_name': 'width_a', 
+        'x_axis_name': 'width'
+    }, 
     # {
     #     'name': 'Examples', 
     #     'model': XX(

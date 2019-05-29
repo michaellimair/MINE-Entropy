@@ -39,7 +39,7 @@ class MineNet(nn.Module):
         return output
 
 class Minee():
-    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=True, resample_each_rep=True):
+    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False):
         self.lr = lr
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -55,13 +55,31 @@ class Minee():
         self.load_dict = load_dict
         self.rep = rep
         self.fix_ref_est = fix_ref_est
-        self.resample_each_rep = resample_each_rep
 
-    def fit(self, Train_X, Train_Y, Test_X, Test_Y):
-        self.Train_X = Train_X
-        self.Train_Y = Train_Y
-        self.Test_X = Test_X
-        self.Test_Y = Test_Y
+    # def fit(self, Train_X, Train_Y, Test_X, Test_Y):
+    #     self.Train_X = Train_X
+    #     self.Train_Y = Train_Y
+    #     self.Test_X = Test_X
+    #     self.Test_Y = Test_Y
+    def fit(self, data_model):
+        data_train = data_model.data
+        data_test = data_model.data
+        if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
+            raise ValueError("dim of data should be even")
+        self.sample_size = data_train.shape[0]
+        self.dim = data_train.shape[1]//2
+        self.Trainlist_X = []
+        self.Trainlist_Y = []
+        self.Testlist_X = []
+        self.Testlist_Y = []
+        for i in range(self.rep):
+            if i > 0:
+                data_train = data_model.data
+                data_test = data_model.data
+            self.Trainlist_X.append(data_train[:,0:data_train.shape[1]//2].copy())
+            self.Trainlist_Y.append(data_train[:,-data_train.shape[1]//2:].copy())
+            self.Testlist_X.append(data_test[:,0:data_test.shape[1]//2].copy())
+            self.Testlist_Y.append(data_test[:,-data_test.shape[1]//2:].copy())
 
         if self.log:
             log_file = os.path.join(self.prefix, "{}_train.log".format(self.model_name))
@@ -80,7 +98,8 @@ class Minee():
             log.write("load_dict={0}\n".format(self.load_dict))
             log.write("rep={0}\n".format(self.rep))
             log.write("fix_ref_est={0}\n".format(self.fix_ref_est))
-            log.write("resample_each_rep={0}\n".format(self.resample_each_rep))
+            log.write("dim={0}\n".format(self.dim))
+            log.write("sample_size={0}\n".format(self.sample_size))
             log.close()
 
         self.XYlist_net = []
@@ -91,9 +110,9 @@ class Minee():
         self.Ylist_optimizer = []
 
         for i in range(self.rep):
-            self.XYlist_net.append(MineNet(input_size=Train_X.shape[1]+Train_Y.shape[1],hidden_size=self.hidden_size))
-            self.Xlist_net.append(MineNet(input_size=Train_X.shape[1],hidden_size=self.hidden_size))
-            self.Ylist_net.append(MineNet(input_size=Train_Y.shape[1],hidden_size=self.hidden_size))
+            self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
+            self.Xlist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
+            self.Ylist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
             self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
             self.Xlist_optimizer.append(optim.Adam(self.Xlist_net[i].parameters(),lr=self.lr))
             self.Ylist_optimizer.append(optim.Adam(self.Ylist_net[i].parameters(),lr=self.lr))
@@ -115,7 +134,7 @@ class Minee():
             if self.verbose:
                 print('results loaded from '+fname)
 
-        self.log_ref_size = float(np.log(int(Train_X.shape[0]*self.ref_batch_factor)))
+        self.log_ref_size = float(np.log(int(self.sample_size*self.ref_batch_factor)))
         self.log_batch_size = float(np.log(self.batch_size*self.ref_batch_factor))
 
         # For MI estimate
@@ -124,8 +143,8 @@ class Minee():
         self.Ylist_ref_t = []
         if self.fix_ref_est:
             for i in range(self.rep):
-                Train_X_ref = uniform_sample(Train_X,batch_size=int(Train_X.shape[0]*self.ref_batch_factor),window_scale=self.ref_window_scale)
-                Train_Y_ref = uniform_sample(Train_Y,batch_size=int(Train_Y.shape[0]*self.ref_batch_factor), window_scale=self.ref_window_scale)
+                Train_X_ref = uniform_sample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
+                Train_Y_ref = uniform_sample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
                 self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
                 self.Xlist_ref_t.append(torch.Tensor(Train_X_ref))
@@ -137,13 +156,13 @@ class Minee():
                 if self.snapshot[i] <= start_i:
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
-            self.update_mine_net(Train_X, Train_Y, self.batch_size)
-            Train_dXY, Train_dX, Train_dY = self.get_estimate(Train_X, Train_Y)
+            self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size)
+            Train_dXY, Train_dX, Train_dY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
             self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
             self.Train_dX_list = np.append(self.Train_dX_list, Train_dX, axis=1)
             self.Train_dY_list = np.append(self.Train_dY_list, Train_dY, axis=1)
 
-            Test_dXY, Test_dX, Test_dY = self.get_estimate(Test_X, Test_Y)
+            Test_dXY, Test_dX, Test_dY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
             self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
             self.Test_dX_list = np.append(self.Test_dX_list, Test_dX, axis=1)
             self.Test_dY_list = np.append(self.Test_dY_list, Test_dY, axis=1)
@@ -169,29 +188,19 @@ class Minee():
 
 
 
-    def update_mine_net(self, Train_X, Train_Y, batch_size):
-        XY_t = torch.Tensor(np.concatenate((Train_X,Train_Y),axis=1))
-        X_t = torch.Tensor(Train_X)
-        Y_t = torch.Tensor(Train_Y)
-        batch_XY = resample(XY_t,batch_size=batch_size)
-        batch_X = resample(X_t, batch_size=batch_size)
-        batch_Y = resample(Y_t,batch_size=batch_size)
-        batch_X_ref = uniform_sample(Train_X,batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-        batch_Y_ref = uniform_sample(Train_Y,batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-        batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref, batch_Y_ref
-        ),axis=1))
-        batch_X_ref = batch_XY_ref[:,0:Train_X.shape[1]]
-        batch_Y_ref = batch_XY_ref[:,-Train_Y.shape[1]:]
+    def update_mine_net(self, X, Y, batch_size):
         for i in range(self.rep):
-            if i>0 and self.resample_each_rep:
-                batch_XY = resample(XY_t,batch_size=batch_size)
-                batch_X = resample(X_t, batch_size=batch_size)
-                batch_Y = resample(Y_t,batch_size=batch_size)
-                batch_X_ref = uniform_sample(Train_X,batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-                batch_Y_ref = uniform_sample(Train_Y,batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-                batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref, batch_Y_ref),axis=1))
-                batch_X_ref = batch_XY_ref[:,0:Train_X.shape[1]]
-                batch_Y_ref = batch_XY_ref[:,-Train_Y.shape[1]:]
+            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
+            X_t = torch.Tensor(X[i])
+            Y_t = torch.Tensor(Y[i])
+            batch_XY = resample(XY_t,batch_size=batch_size)
+            batch_X = resample(X_t, batch_size=batch_size)
+            batch_Y = resample(Y_t,batch_size=batch_size)
+            batch_X_ref = uniform_sample(X[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
+            batch_Y_ref = uniform_sample(Y[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
+            batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref, batch_Y_ref),axis=1))
+            batch_X_ref = batch_XY_ref[:,0:self.dim]
+            batch_Y_ref = batch_XY_ref[:,-self.dim:]
             self.XYlist_optimizer[i].zero_grad()
             self.Xlist_optimizer[i].zero_grad()
             self.Ylist_optimizer[i].zero_grad()
@@ -218,21 +227,21 @@ class Minee():
             self.Ylist_optimizer[i].step()    
 
     def get_estimate(self, X, Y):
-        XY_t = torch.Tensor(np.concatenate((X,Y),axis=1))
-        X_t = torch.Tensor(X)
-        Y_t = torch.Tensor(Y)
 
         dXY_list = np.zeros((self.rep, 1))
         dY_list = np.zeros((self.rep, 1))
         dX_list = np.zeros((self.rep, 1))
         for i in range(self.rep):
+            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
+            X_t = torch.Tensor(X[i])
+            Y_t = torch.Tensor(Y[i])
             if self.fix_ref_est:
                 XY_ref_t = self.XYlist_ref_t[i]
                 X_ref_t = self.Xlist_ref_t[i]
                 Y_ref_t = self.Ylist_ref_t[i]
             else:
-                Train_X_ref = uniform_sample(X,batch_size=int(X.shape[0]*self.ref_batch_factor),window_scale=self.ref_window_scale)
-                Train_Y_ref = uniform_sample(Y,batch_size=int(Y.shape[0]*self.ref_batch_factor), window_scale=self.ref_window_scale)
+                Train_X_ref = uniform_sample(X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
+                Train_Y_ref = uniform_sample(Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
                 XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
                 Y_ref_t = torch.Tensor(Train_Y_ref)
@@ -247,19 +256,21 @@ class Minee():
 
         return dXY_list, dX_list, dY_list
 
-    def predict(self, Train_X, Train_Y, Test_X, Test_Y):
-        Train_X, Train_Y = np.array(Train_X), np.array(Train_Y)
-        Test_X, Test_Y = np.array(Test_X), np.array(Test_Y)
-        self.fit(Train_X,Train_Y, Test_X, Test_Y)
+    # def predict(self, Train_X, Train_Y, Test_X, Test_Y):
+    #     Train_X, Train_Y = np.array(Train_X), np.array(Train_Y)
+    #     Test_X, Test_Y = np.array(Test_X), np.array(Test_Y)
+    #     self.fit(Train_X,Train_Y, Test_X, Test_Y)
+    def predict(self, data_model):
+        self.fit(data_model)
 
         mi_lb = np.average(self.Train_dXY_list[:,-1]) - np.average(self.Train_dY_list[:,-1]) - np.average(self.Train_dX_list[:,-1])
 
         if self.log:
             self.save_figure(suffix="iter={}".format(self.iter_num))
-        self.Train_X = []
-        self.Train_Y = []
-        self.Test_X = []
-        self.Test_Y = []
+        self.Trainlist_X = []
+        self.Trainlist_Y = []
+        self.Testlist_X = []
+        self.Testlist_Y = []
 
         self.XYlist_ref_t = []
         self.Xlist_ref_t = []
@@ -315,19 +326,19 @@ class Minee():
             axCur.set_title('curve of testing data mutual information')
 
             # Trained Function contour plot
-            if self.Train_X.shape[1] == 1 and self.Train_Y.shape[1] == 1:
-                Xmax = self.Train_X.max()
-                Xmin = self.Train_X.min()
-                Ymax = self.Train_Y.max()
-                Ymin = self.Train_Y.min()
+            if len(self.Trainlist_X) == 1 and self.Trainlist_X[0].shape[1] == 1 and self.Trainlist_Y[0].shape[1] == 1:
+                Xmax = self.Trainlist_X[0].max()
+                Xmin = self.Trainlist_X[0].min()
+                Ymax = self.Trainlist_Y[0].max()
+                Ymin = self.Trainlist_Y[0].min()
                 x = np.linspace(Xmin, Xmax, 300)
                 y = np.linspace(Ymin, Ymax, 300)
                 xs, ys = np.meshgrid(x,y)
                 # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
                 mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-                fxy = self.XY_net(mesh)
-                fx = self.X_net(mesh[:,[0]])
-                fy = self.Y_net(mesh[:,[1]])
+                fxy = self.XYlist_net[0](mesh)
+                fx = self.Xlist_net[0](mesh[:,[0]])
+                fy = self.Ylist_net[0](mesh[:,[1]])
                 ixy = (fxy - fx - fy).detach().numpy()
                 ixy = ixy.reshape(xs.shape[1], ys.shape[0])
 
@@ -343,8 +354,8 @@ class Minee():
                 axCur.set_title('heatmap T(X,Y) for learning H(X,Y)')
 
                 axCur = ax[1,2]
-                axCur.scatter(self.Train_X, self.Train_Y, color='red', marker='o', label='train')
-                axCur.scatter(self.Test_X, self.Test_Y, color='green', marker='x', label='test')
+                axCur.scatter(self.Trainlist_X[0], self.Trainlist_Y[0], color='red', marker='o', label='train')
+                axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
                 axCur.set_title('Plot of all train data samples and test data samples')
                 axCur.legend()
         else:
@@ -438,10 +449,10 @@ class Minee():
             'Xlist_optimizer': self.Xlist_optimizer,
             'Ylist_net': self.Ylist_net,
             'Ylist_optimizer': self.Ylist_optimizer,
-            'Train_X': self.Train_X,
-            'Train_Y': self.Train_Y,
-            'Test_X': self.Test_X,
-            'Test_Y': self.Test_Y,
+            'Trainlist_X': self.Trainlist_X,
+            'Trainlist_Y': self.Trainlist_Y,
+            'Testlist_X': self.Testlist_X,
+            'Testlist_Y': self.Testlist_Y,
             'lr': self.lr,
             'batch_size': self.batch_size,
             'ref_batch_factor': self.ref_batch_factor,
@@ -461,10 +472,10 @@ class Minee():
         self.Xlist_optimizer = state_dict['Xlist_optimizer']
         self.Ylist_net = state_dict['Ylist_net']
         self.Ylist_optimizer = state_dict['Ylist_optimizer']
-        self.Train_X = state_dict['Train_X']
-        self.Train_Y = state_dict['Train_Y']
-        self.Test_X = state_dict['Test_X']
-        self.Test_Y = state_dict['Test_Y']
+        self.Trainlist_X = state_dict['Trainlist_X']
+        self.Trainlist_Y = state_dict['Trainlist_Y']
+        self.Testlist_X = state_dict['Testlist_X']
+        self.Testlist_Y = state_dict['Testlist_Y']
         if 'lr' in state_dict:
             self.lr = state_dict['lr']
         if 'batch_size' in state_dict:
