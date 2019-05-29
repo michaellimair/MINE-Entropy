@@ -128,7 +128,7 @@ class Mine():
         self.array_start = 0
         self.Train_start_ma = 0
         self.Test_start_ma = 0
-        fname = os.path.join(self.prefix, "cache.pt")
+        fname = self.get_latest_cache_name()
         if self.load_dict and os.path.exists(fname):
             state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
             self.load_state_dict(state_dict)
@@ -161,8 +161,8 @@ class Mine():
                     Train_Y_ref = resample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_factor), replace=False)
                 self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
 
-        if type(self.Train_dXY_list)==np.ndarray and self.Train_dXY_list.ndim == 2 and len(self.Train_dXY_list[0,:]) > 0:
-            start_i = len(self.Train_dXY_list[0,:]) + 1
+        if type(self.Train_dXY_list)==np.ndarray and self.Train_dXY_list.ndim == 2:
+            start_i = len(self.Train_dXY_list[0,:]) + self.array_start
             for i in range(len(self.snapshot)):
                 if self.snapshot[i] <= start_i:
                     snapshot_i = i+1
@@ -248,7 +248,7 @@ class Mine():
             self.Test_dXY_list = np.zeros((self.rep, 0))
 
     def load_all_array(self):
-        fname = os.path.join(self.prefix, "cache.pt")
+        fname = self.get_latest_cache_name()
         if self.load_dict and os.path.exists(fname):
             state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
             self.load_state_dict(state_dict)
@@ -402,3 +402,14 @@ class Mine():
             'Test_start_ma': self.Test_start_ma
         }
 
+    def get_latest_cache_name(self):
+        fname = os.path.join(self.prefix, "cache_iter={}.pt".format(self.iter_num))
+        if not os.path.exists(fname):
+            for i in range(len(self.snapshot)):
+                cur_snapshot = self.snapshot[-i-1]
+                fname = os.path.join(self.prefix, "cache_iter={}.pt".format(cur_snapshot))
+                if os.path.exists(fname):
+                    break
+                if i == len(self.snapshot)-1:
+                    fname=os.path.join(self.prefix, "cache.pt")
+        return fname
