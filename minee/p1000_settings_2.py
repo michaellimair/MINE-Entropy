@@ -51,11 +51,10 @@ model = {
     #         log=True,
     #         verbose=False,
     #         ref_window_scale=1,
-    #         ref_batch_factor=10,
+    #         ref_batch_factor=1,
     #         load_dict=True,
     #         rep=10,
-    #         fix_ref_est=True,
-    #         resample_each_rep=True
+    #         fix_ref_est=False
     #     ), 
     #     'color': 'purple'
     # },
@@ -73,8 +72,7 @@ model = {
             load_dict=True,
             ref_factor=1,
             rep=10,
-            fix_ref_est=False,
-            resample_each_rep=True 
+            fix_ref_est=False
         ),
         'color': 'orange'
     },
@@ -92,8 +90,7 @@ model = {
     #         load_dict=True,
     #         ref_factor=1,
     #         rep=10,
-    #         fix_ref_est=False,
-    #         resample_each_rep=True
+    #         fix_ref_est=False
     #     ),
     #     'color': 'magenta'
     # },
@@ -107,7 +104,7 @@ model = {
     #         log=True,
     #         verbose=False,
     #         ref_window_scale=1,
-    #         ref_batch_factor=10,
+    #         ref_batch_factor=1,
     #         load_dict=True
     #     ), 
     #     'color': 'purple'

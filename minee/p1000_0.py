@@ -66,14 +66,14 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     # results = dict()
     data_model.sample_size = pop
 
-    data_train = data_model.data
-    data_test = data_model.data
-    if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
-        raise ValueError("dim of gaussian should be even")
-    X_train = data_train[:,0:data_train.shape[1]//2]
-    Y_train = data_train[:,-data_train.shape[1]//2:]
-    X_test = data_test[:,0:data_test.shape[1]//2]
-    Y_test = data_test[:,-data_test.shape[1]//2:]
+    # data_train = data_model.data
+    # data_test = data_model.data
+    # if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
+    #     raise ValueError("dim of gaussian should be even")
+    # X_train = data_train[:,0:data_train.shape[1]//2]
+    # Y_train = data_train[:,-data_train.shape[1]//2:]
+    # X_test = data_test[:,0:data_test.shape[1]//2]
+    # Y_test = data_test[:,-data_test.shape[1]//2:]
     ground_truth = data_model.ground_truth
 
     prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}_{}_{}={}_model={}/".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name))
@@ -109,7 +109,8 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     model['model'].paramName = varying_param_name
     model['model'].paramValue = varying_param_value
     model['model'].ground_truth = ground_truth
-    mi_estimation = model['model'].predict(X_train, Y_train, X_test, Y_test)
+    # mi_estimation = model['model'].predict(X_train, Y_train, X_test, Y_test)
+    mi_estimation = model['model'].predict(data_model)
 
     # Save Results
     # results[model_name] = mi_estimation
