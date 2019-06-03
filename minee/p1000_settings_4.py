@@ -1,5 +1,5 @@
 import numpy as np
-random_seed = 1
+random_seed = 2
 np.random.seed(seed=random_seed)
 import torch
 # torch.manual_seed(seed=random_seed)
@@ -165,7 +165,7 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian': {
+    'Mixed Gaussian X': {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
@@ -174,6 +174,21 @@ data = {
                 'mean2':0, 
                 'rho1': rho, 
                 'rho2': -rho,
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
+    'Mixed Gaussian +': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':0, 
+                'mean2':0, 
+                'rho1': rho, 
+                'rho2': -rho,
+                'theta': np.pi/4.
             } for rho in rhos
         ], 
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot

@@ -111,6 +111,8 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     model['model'].ground_truth = ground_truth
     # mi_estimation = model['model'].predict(X_train, Y_train, X_test, Y_test)
     mi_estimation = model['model'].predict(data_model)
+    model['model'].load_all_array()
+    model['model'].save_figure(suffix="all")
 
     # Save Results
     # results[model_name] = mi_estimation

@@ -187,6 +187,9 @@ class Mine():
 
             if self.archive_length>0 and (i+1)%self.archive_length==0:
                 self.save_array()
+                
+        if self.log:
+            self.save_figure(suffix="iter={}".format(self.iter_num))
         # To save new results to a db file using the following code, delete the existing db file.
         fname = os.path.join(self.prefix, "cache_iter={}.pt".format(self.iter_num))
         if not os.path.exists(fname):
@@ -234,7 +237,10 @@ class Mine():
 
     def save_array(self):
         array_end = self.array_start + self.Train_dXY_list.shape[1]
-        fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(self.array_start, array_end))
+        fpath = os.path.join(self.prefix, "archive")
+        if not os.path.exists(fpath):
+            os.mkdir(fpath)
+        fname = os.path.join(fpath, "[{}-{}).pt".format(self.array_start, array_end))
         with open(fname, 'wb') as f:
             torch.save(self.array_state_dict(),f)
             if self.verbose:
@@ -254,14 +260,15 @@ class Mine():
             self.load_state_dict(state_dict)
         start = 0
         end = self.archive_length + start
-        fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(start, end))
+        cache_array_start = self.array_start
+        fname = os.path.join(self.prefix, "archive", "[{}-{}).pt".format(start, end))
         Train_dXY_list = np.zeros((self.rep, 0))
         Test_dXY_list = np.zeros((self.rep, 0))
-        while(os.path.exists(fname)):
+        while(os.path.exists(fname) and end <= cache_array_start):
             state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
             start = self.archive_length + start
             end = self.archive_length + start
-            fname = os.path.join(self.prefix, "archive[{}-{}).pt".format(start, end))
+            fname = os.path.join(self.prefix, "archive", "[{}-{}).pt".format(start, end))
             Train_dXY_list = np.append(Train_dXY_list, state_dict['Train_dXY_list'], axis=1)
             Test_dXY_list = np.append(Test_dXY_list, state_dict['Test_dXY_list'], axis=1)
         
@@ -282,8 +289,6 @@ class Mine():
         else:
             mi_lb = np.average(self.Train_dXY_list[:,-1])
 
-        if self.log:
-            self.save_figure(suffix="iter={}".format(self.iter_num))
         self.Trainlist_X = []
         self.Trainlist_Y = []
         self.Testlist_X = []
@@ -298,16 +303,16 @@ class Mine():
         return mi_lb
 
     def save_figure(self, suffix=""):
-        fig, ax = plt.subplots(1,4, figsize=(90, 15))
+        fig, ax = plt.subplots(2,4, figsize=(90, 30))
 
         #plot mi_lb curve
-        axCur = ax[0]
+        axCur = ax[0, 0]
         Train_mi_lb = self.Train_dXY_list
         axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
         axCur.set_title('curve of training data mutual information')
 
         #plot mi_lb curve
-        axCur = ax[1]
+        axCur = ax[0, 1]
         Test_mi_lb = self.Test_dXY_list
         axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
         axCur.set_title('curve of testing data mutual information')
@@ -338,17 +343,35 @@ class Mine():
             axCur.legend()
         else:
             #plot mi_lb curve
-            axCur = ax[2]
+            axCur = ax[0, 2]
             Train_mi_lb = plot_util.Moving_average(self.Train_dXY_list, ma_rate=0.01, start=self.Train_start_ma)
             
             axCur = plot_util.getTrainCurve(Train_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of training data mutual information with 0.01 ma')
 
             #plot mi_lb curve
-            axCur = ax[3]
+            axCur = ax[0, 3]
             Test_mi_lb = plot_util.Moving_average(self.Test_dXY_list, ma_rate=0.01, start=self.Test_start_ma)
             axCur = plot_util.getTrainCurve(Test_mi_lb , [], axCur, show_min=False, ground_truth=self.ground_truth, start=self.array_start)
             axCur.set_title('curve of testing data mutual information with 0.01 ma')
+
+            #plot mi_lb bias curve
+            axCur = ax[1, 0]
+            Train_bias = np.mean(Train_mi_lb, axis=0) - self.ground_truth
+            Test_bias = np.mean(Test_mi_lb, axis=0) - self.ground_truth
+            axCur = plot_util.getTrainCurve(Train_bias , Test_bias, axCur, show_min=False, start=self.array_start)
+            axCur.set_ylabel("bias of mutual information estimate")
+            axCur.set_xlabel("number of iteration step")
+            axCur.set_title('curve of mutual information estimation bias')
+
+            #plot mi_lb standard deviation curve
+            axCur = ax[1, 1]
+            Train_std = np.std(Train_mi_lb, axis=0)
+            Test_std = np.std(Test_mi_lb, axis=0)
+            axCur = plot_util.getTrainCurve(Train_std, Test_std, axCur, show_min=False, start=self.array_start)
+            axCur.set_ylabel("std of mutual information estimate")
+            axCur.set_xlabel("number of iteration step")
+            axCur.set_title('curve of mutual information estimation standard deviation')
 
 
         figName = os.path.join(self.prefix, "{}_{}".format(self.model_name, suffix))

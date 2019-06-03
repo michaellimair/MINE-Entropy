@@ -32,7 +32,7 @@ pop_batch = [
     
     ]
 
-iter_num = int(2e3)
+iter_num = int(1e3)
 record_rate = int(250)
 # snapshot = [iter_num//1028, iter_num//512, iter_num//256, iter_num//128, iter_num//64, iter_num//32, iter_num//16, iter_num//8, iter_num//4, iter_num//2]
 # snapshot = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200]
@@ -46,24 +46,24 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    # 'MINEE': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=1,
-    #         load_dict=True,
-    #         rep=2,
-    #         fix_ref_est=False,
-    #         archive_length=250
-    #     ), 
-    #     'color': 'purple'
-    # },
+    'MINEE': {
+        'model': Minee(
+            lr=lr, 
+            batch_size=batch_size,
+            hidden_size=hidden_size,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            ref_window_scale=1,
+            ref_batch_factor=1,
+            load_dict=True,
+            rep=2,
+            fix_ref_est=False,
+            archive_length=100
+        ), 
+        'color': 'purple'
+    },
     'MINE_hidden=100': {
         'model': Mine(
             lr=lr, 
@@ -79,7 +79,7 @@ model = {
             ref_factor=1,
             rep=2,
             fix_ref_est=False,
-            archive_length=250
+            archive_length=100
         ),
         'color': 'orange'
     },
@@ -205,7 +205,21 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian': {
+    # 'Mixed Gaussian X': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
+    'Mixed Gaussian +': {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
@@ -214,23 +228,24 @@ data = {
                 'mean2':0, 
                 'rho1': rho, 
                 'rho2': -rho,
+                'theta': np.pi/4.
             } for rho in rhos
         ], 
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
     }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # '2-Dimension Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [
@@ -279,19 +294,19 @@ data = {
     #     'varying_param_name': 'rho', 
     #     'x_axis_name': 'correlation', 
     # },
-    'Mixed Uniform': {
-        'model': MixedUniform, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'width_a': width, 
-                'width_b': width, 
-                'mix': 0.5
-            } for width in widths
-        ], 
-        'varying_param_name': 'width_a', 
-        'x_axis_name': 'width'
-    }, 
+    # 'Mixed Uniform': {
+    #     'model': MixedUniform, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'width_a': width, 
+    #             'width_b': width, 
+    #             'mix': 0.5
+    #         } for width in widths
+    #     ], 
+    #     'varying_param_name': 'width_a', 
+    #     'x_axis_name': 'width'
+    # }, 
     # {
     #     'name': 'Examples', 
     #     'model': XX(
