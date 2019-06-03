@@ -41,43 +41,43 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
-    # 'MINEE': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=1,
-    #         load_dict=True,
-    #         rep=10,
-    #         fix_ref_est=False,
-    #         archive_length=5000
-    #     ), 
-    #     'color': 'purple'
-    # },
-    'MINE_hidden=100': {
-        'model': Mine(
+    'MINEE': {
+        'model': Minee(
             lr=lr, 
             batch_size=batch_size,
-            ma_rate=moving_average_rate,
             hidden_size=hidden_size,
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
             verbose=False,
-            full_ref=False,
+            ref_window_scale=1,
+            ref_batch_factor=1,
             load_dict=True,
-            ref_factor=1,
             rep=10,
             fix_ref_est=False,
             archive_length=5000
-        ),
-        'color': 'orange'
+        ), 
+        'color': 'purple'
     },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         archive_length=5000
+    #     ),
+    #     'color': 'orange'
+    # },
     # 'MINE_hidden=300': {
     #     'model': Mine(
     #         lr=lr, 
@@ -165,20 +165,20 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian X': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
+    # 'Mixed Gaussian X': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
     'Mixed Gaussian +': {
         'model': MixedGaussian,
         'kwargs': [  # list of params

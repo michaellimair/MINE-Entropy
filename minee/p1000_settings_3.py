@@ -194,18 +194,18 @@ data = {
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
     }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [
