@@ -48,7 +48,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=False, archive_length=0):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=False, archive_length=0, full_batch_ref=False, estimate_rate=1):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -66,6 +66,8 @@ class Mine():
         self.rep = rep
         self.fix_ref_est = fix_ref_est
         self.archive_length = archive_length
+        self.full_batch_ref = full_batch_ref
+        self.estimate_rate = estimate_rate
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -109,6 +111,8 @@ class Mine():
             log.write("dim={0}\n".format(self.dim))
             log.write("sample_size={0}\n".format(self.sample_size))
             log.write("archive_length={0}\n".format(self.archive_length))
+            log.write("full_batch_ref={0}\n".format(self.full_batch_ref))
+            log.write("estimate_rate={0}\n".format(self.estimate_rate))
             log.close()
 
 
@@ -168,11 +172,13 @@ class Mine():
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
             self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size, self.ma_rate)
-            Train_dXY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
-            self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
 
-            Test_dXY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
-            self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
+            if i%self.estimate_rate==0:
+                Train_dXY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
+                self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
+
+                Test_dXY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
+                self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
 
             if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
                 self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
@@ -198,14 +204,22 @@ class Mine():
                 if self.verbose:
                     print('results saved to '+fname)
 
-
-
     def update_mine_net(self, X, Y, batch_size, ma_rate):
         for i in range(self.rep):
             XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
             batch_XY = resample(XY_t,batch_size=batch_size)
 
-            batch_XY_ref = torch.Tensor(np.concatenate((resample(X[i],batch_size=batch_size),                                                         resample(Y[i],batch_size=batch_size)),axis=1))
+            if self.full_batch_ref:
+                batch_X_ref, batch_Y_ref = np.meshgrid(batch_XY[0], batch_XY[1].T)
+                if len(batch_XY[0].shape)==1:
+                    batch_X_ref = batch_X_ref.flatten()[:,None]
+                    batch_Y_ref = batch_Y_ref.flatten()[:,None]
+                elif len(batch_XY[0].shape)==2:
+                    batch_X_ref = batch_X_ref[:batch_size,:].reshape((batch_size**2), self.dim)
+                    batch_Y_ref = batch_Y_ref[:,:batch_size].reshape(self.dim, (batch_size**2)).T
+                batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref,batch_Y_ref),axis=1))
+            else:
+                batch_XY_ref = torch.Tensor(np.concatenate((resample(X[i],batch_size=batch_size),                                                         resample(Y[i],batch_size=batch_size)),axis=1))
             self.XYlist_optimizer[i].zero_grad()
             fXY = self.XYlist_net[i](batch_XY)
             efXY_ref = torch.exp(self.XYlist_net[i](batch_XY_ref))
@@ -213,7 +227,6 @@ class Mine():
             batch_dXY = -(torch.mean(fXY) - (1/self.ma_ef.mean()).detach()*torch.mean(efXY_ref))
             batch_dXY.backward()
             self.XYlist_optimizer[i].step()
-
 
     def get_estimate(self, X, Y):
         dXY_list = np.zeros((self.rep, 1))
@@ -278,8 +291,6 @@ class Mine():
         if self.Test_dXY_list.shape[1]>=0 and self.array_start==start:
             self.Test_dXY_list = np.append(Test_dXY_list, self.Test_dXY_list, axis=1)
         self.array_start = 0
-            
-        
 
     def predict(self, data_model):
         self.fit(data_model)
@@ -382,8 +393,10 @@ class Mine():
         return {
             'Train_dXY_list' : self.Train_dXY_list,
             'Test_dXY_list' : self.Test_dXY_list,
-            'XYlist_net': self.XYlist_net,
-            'XYlist_optimizer': self.XYlist_optimizer,
+            'XYlist_net': [XY_net.state_dict() for XY_net in self.checkpoint_mine["XYlist_net"]],
+            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.checkpoint_mine["XYlist_optimizer"]],
+            # 'XYlist_net': self.XYlist_net.state_dict(),
+            # 'XYlist_optimizer': self.XYlist_optimizer.state_dict(),
             'Trainlist_X': self.Trainlist_X,
             'Trainlist_Y': self.Trainlist_Y,
             'Testlist_X': self.Testlist_X,
@@ -398,8 +411,24 @@ class Mine():
         }
 
     def load_state_dict(self, state_dict):
-        self.XYlist_net = state_dict['XYlist_net']
-        self.XYlist_optimizer = state_dict['XYlist_optimizer']
+        if 'XYlist_net' in state_dict:
+            if dict() == type(state_dict['XYlist_net'][0]):
+                for XY_net in state_dict['XYlist_net']:
+                    self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
+                    self.XYlist_net[-1].load_state_dict(XY_net)
+                self.XYlist_net = state_dict['XYlist_net']
+            else:
+                self.XYlist_net = state_dict['XYlist_net']
+        if 'XYlist_optimizer' in state_dict:
+            if dict() == type(state_dict['XYlist_optimizer'][0]):
+                for XY_optim in state_dict['XYlist_optimizer']:
+                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
+                    self.XYlist_optimizer[-1].load_state_dict(XY_optim)
+                self.XYlist_optimizer = state_dict['XYlist_optimizer']
+            else:
+                self.XYlist_optimizer = state_dict['XYlist_optimizer']
+        # self.XYlist_net = state_dict['XYlist_net']
+        # self.XYlist_optimizer = state_dict['XYlist_optimizer']
         self.Trainlist_X = state_dict['Trainlist_X']
         self.Trainlist_Y = state_dict['Trainlist_Y']
         self.Testlist_X = state_dict['Testlist_X']

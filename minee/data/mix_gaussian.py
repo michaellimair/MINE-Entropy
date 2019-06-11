@@ -85,7 +85,8 @@ class MixedGaussian():
         i_ = [self.I(xs[i,j], ys[i,j]) for j in range(ys.shape[1]) for i in range(xs.shape[0])]
         i_ = np.array(i_).reshape(xs.shape[0], ys.shape[1])
         i_ = i_[:-1, :-1]
-        i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        # i_min, i_max = -np.abs(i_).max(), np.abs(i_).max()
+        i_min, i_max = i_.min(), i_.max()
         c = ax.pcolormesh(xs, ys, i_, cmap='RdBu', vmin=i_min, vmax=i_max)
         # set the limits of the plot to the limits of the data
         ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])

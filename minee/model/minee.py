@@ -191,8 +191,6 @@ class Minee():
                 if self.verbose:
                     print('results saved to '+fname)
 
-
-
     def update_mine_net(self, X, Y, batch_size):
         for i in range(self.rep):
             XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
@@ -259,7 +257,6 @@ class Minee():
             dX_list[i, 0] = dX.cpu().item()
 
         return dXY_list, dX_list, dY_list
-
 
     def save_array(self):
         array_end = self.array_start + self.Train_dXY_list.shape[1]
@@ -332,8 +329,7 @@ class Minee():
         if self.Test_dY_list.shape[1]>=0 and self.array_start==start:
             self.Test_dY_list = np.append(Test_dY_list, self.Test_dY_list, axis=1)
         self.array_start = 0
-            
-        
+
     def predict(self, data_model):
         self.fit(data_model)
 
@@ -541,12 +537,18 @@ class Minee():
 
     def state_dict(self):
         return {
-            'XYlist_net': self.XYlist_net,
-            'XYlist_optimizer': self.XYlist_optimizer,
-            'Xlist_net': self.Xlist_net,
-            'Xlist_optimizer': self.Xlist_optimizer,
-            'Ylist_net': self.Ylist_net,
-            'Ylist_optimizer': self.Ylist_optimizer,
+            'XYlist_net': [XY_net.state_dict() for XY_net in self.checkpoint_mi_nee["XYlist_net"]],
+            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.checkpoint_mi_nee["XYlist_optimizer"]],
+            'Xlist_net': [X_net.state_dict() for X_net in self.checkpoint_mi_nee["Xlist_net"]],
+            'Xlist_optimizer': [X_optim.state_dict() for X_optim in self.checkpoint_mi_nee["Xlist_optimizer"]],
+            'Ylist_net': [Y_net.state_dict() for Y_net in self.checkpoint_mi_nee["Ylist_net"]],
+            'Ylist_optimizer': [Y_optim.state_dict() for Y_optim in self.checkpoint_mi_nee["Ylist_optimizer"]],
+            # 'XYlist_net': self.XYlist_net.state_dict(),
+            # 'XYlist_optimizer': self.XYlist_optimizer.state_dict(),
+            # 'Xlist_net': self.Xlist_net.state_dict(),
+            # 'Xlist_optimizer': self.Xlist_optimizer.state_dict(),
+            # 'Ylist_net': self.Ylist_net.state_dict(),
+            # 'Ylist_optimizer': self.Ylist_optimizer.state_dict(),
             'Trainlist_X': self.Trainlist_X,
             'Trainlist_Y': self.Trainlist_Y,
             'Testlist_X': self.Testlist_X,
@@ -567,12 +569,59 @@ class Minee():
         }
 
     def load_state_dict(self, state_dict):
-        self.XYlist_net = state_dict['XYlist_net']
-        self.XYlist_optimizer = state_dict['XYlist_optimizer']
-        self.Xlist_net = state_dict['Xlist_net']
-        self.Xlist_optimizer = state_dict['Xlist_optimizer']
-        self.Ylist_net = state_dict['Ylist_net']
-        self.Ylist_optimizer = state_dict['Ylist_optimizer']
+        if 'XYlist_net' in state_dict:
+            if dict() == type(state_dict['XYlist_net'][0]):
+                for XY_net in state_dict['XYlist_net']:
+                    self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
+                    self.XYlist_net[-1].load_state_dict(XY_net)
+                self.XYlist_net = state_dict['XYlist_net']
+            else:
+                self.XYlist_net = state_dict['XYlist_net']
+        if 'XYlist_optimizer' in state_dict:
+            if dict() == type(state_dict['XYlist_optimizer'][0]):
+                for XY_optim in state_dict['XYlist_optimizer']:
+                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
+                    self.XYlist_optimizer[-1].load_state_dict(XY_optim)
+                self.XYlist_optimizer = state_dict['XYlist_optimizer']
+            else:
+                self.XYlist_optimizer = state_dict['XYlist_optimizer']
+        # self.XYlist_optimizer = state_dict['XYlist_optimizer']
+        if 'Xlist_net' in state_dict:
+            if dict() == type(state_dict['Xlist_net'][0]):
+                for X_net in state_dict['Xlist_net']:
+                    self.Xlist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
+                    self.Xlist_net[-1].load_state_dict(X_net)
+                self.Xlist_net = state_dict['Xlist_net']
+            else:
+                self.Xlist_net = state_dict['Xlist_net']
+        # self.Xlist_net = state_dict['Xlist_net']
+        if 'Xlist_optimizer' in state_dict:
+            if dict() == type(state_dict['Xlist_optimizer'][0]):
+                for X_optim in state_dict['Xlist_optimizer']:
+                    self.Xlist_optimizer.append(optim.Adam(self.Xlist_net[i].parameters(),lr=self.lr))
+                    self.Xlist_optimizer[-1].load_state_dict(X_optim)
+                self.Xlist_optimizer = state_dict['Xlist_optimizer']
+            else:
+                self.Xlist_optimizer = state_dict['Xlist_optimizer']
+        # self.Xlist_optimizer = state_dict['Xlist_optimizer']
+        if 'Ylist_net' in state_dict:
+            if dict() == type(state_dict['Ylist_net'][0]):
+                for Y_net in state_dict['Ylist_net']:
+                    self.Ylist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
+                    self.Ylist_net[-1].load_state_dict(Y_net)
+                self.Ylist_net = state_dict['Ylist_net']
+            else:
+                self.Ylist_net = state_dict['Ylist_net']
+        # self.Ylist_net = state_dict['Ylist_net']
+        if 'Ylist_optimizer' in state_dict:
+            if dict() == type(state_dict['Ylist_optimizer'][0]):
+                for Y_optim in state_dict['Ylist_optimizer']:
+                    self.Ylist_optimizer.append(optim.Adam(self.Ylist_net[i].parameters(),lr=self.lr))
+                    self.Ylist_optimizer[-1].load_state_dict(Y_optim)
+                self.Ylist_optimizer = state_dict['Ylist_optimizer']
+            else:
+                self.Ylist_optimizer = state_dict['Ylist_optimizer']
+        # self.Ylist_optimizer = state_dict['Ylist_optimizer']
         self.Trainlist_X = state_dict['Trainlist_X']
         self.Trainlist_Y = state_dict['Trainlist_Y']
         self.Testlist_X = state_dict['Testlist_X']
