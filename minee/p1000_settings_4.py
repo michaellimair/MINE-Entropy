@@ -187,21 +187,21 @@ data = {
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
     }, 
-    'Mixed Gaussian +': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-                'theta': np.pi/4.
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
+    # 'Mixed Gaussian +': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'theta': np.pi/4.
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
     # 'Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [

@@ -41,26 +41,26 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
-    'MINEE': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=1,
-            load_dict=True,
-            rep=10,
-            fix_ref_est=False,
-            archive_length=5000,
-            estimate_rate=1,
-            video_frames=5000
-        ), 
-        'color': 'purple'
-    },
+    # 'MINEE': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=1,
+    #         load_dict=True,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         archive_length=5000,
+    #         estimate_rate=1,
+    #         video_frames=5000
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
@@ -83,28 +83,28 @@ model = {
     #     ),
     #     'color': 'orange'
     # },
-    # 'MINE_hidden=300': {
-    #     'model': Mine(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         ma_rate=moving_average_rate,
-    #         hidden_size=hidden_size*3,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         full_ref=False,
-    #         load_dict=True,
-    #         ref_factor=1,
-    #         rep=10,
-    #         fix_ref_est=False,
-    #         archive_length=5000,
-    #         full_batch_ref=True,
-    #         estimate_rate=1,
-    #         video_frames=5000
-    #     ),
-    #     'color': 'magenta'
-    # },
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=10,
+            fix_ref_est=False,
+            archive_length=5000,
+            full_batch_ref=True,
+            estimate_rate=1,
+            video_frames=5000
+        ),
+        'color': 'magenta'
+    },
     # 'MINEE': {
     #     'model': Minee(
     #         lr=lr, 
@@ -154,13 +154,13 @@ model = {
 
 sample_size = 200
 rhos = [ 
-    0, 
+    # 0, 
     0.2, 
-    0.4, 
+    # 0.4, 
     0.6, 
-    0.8, 
+    # 0.8, 
     0.9, 
-    0.95, 
+    # 0.95, 
     0.99 
     ]
 widths = [
@@ -187,21 +187,21 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    'Mixed Gaussian +': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-                'theta': np.pi/4.
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
+    # 'Mixed Gaussian +': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'theta': np.pi/4.
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
     'Gaussian': {
         'model': Gaussian, 
         'kwargs': [
