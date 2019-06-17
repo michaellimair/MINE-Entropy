@@ -39,7 +39,7 @@ class MineNet(nn.Module):
         return output
 
 class Minee():
-    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0):
+    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0, estimate_rate=1, video_frames=0):
         self.lr = lr
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -56,6 +56,8 @@ class Minee():
         self.rep = rep
         self.fix_ref_est = fix_ref_est
         self.archive_length = archive_length
+        self.estimate_rate = estimate_rate
+        self.video_frames = video_frames
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -97,7 +99,22 @@ class Minee():
             log.write("dim={0}\n".format(self.dim))
             log.write("sample_size={0}\n".format(self.sample_size))
             log.write("archive_length={0}\n".format(self.archive_length))
+            log.write("estimate_rate={0}\n".format(self.estimate_rate))
+            log.write("video_frames={0}\n".format(self.video_frames))
             log.close()
+
+        if self.video_frames>0:
+            Xmax = self.Trainlist_X[0].max()
+            Xmin = self.Trainlist_X[0].min()
+            Ymax = self.Trainlist_Y[0].max()
+            Ymin = self.Trainlist_Y[0].min()
+            x = np.linspace(Xmin, Xmax, 300)
+            y = np.linspace(Ymin, Ymax, 300)
+            xs, ys = np.meshgrid(x,y)
+            # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            ixy_list_shape = np.append(np.array(xs.shape), 0).tolist()
+            ixy_list = np.zeros(ixy_list_shape)
 
         self.XYlist_net = []
         self.Xlist_net = []
@@ -157,15 +174,41 @@ class Minee():
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
             self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size)
-            Train_dXY, Train_dX, Train_dY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
-            self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
-            self.Train_dX_list = np.append(self.Train_dX_list, Train_dX, axis=1)
-            self.Train_dY_list = np.append(self.Train_dY_list, Train_dY, axis=1)
 
-            Test_dXY, Test_dX, Test_dY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
-            self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
-            self.Test_dX_list = np.append(self.Test_dX_list, Test_dX, axis=1)
-            self.Test_dY_list = np.append(self.Test_dY_list, Test_dY, axis=1)
+            if (i+1)%self.estimate_rate==0:
+                Train_dXY, Train_dX, Train_dY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
+                self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
+                self.Train_dX_list = np.append(self.Train_dX_list, Train_dX, axis=1)
+                self.Train_dY_list = np.append(self.Train_dY_list, Train_dY, axis=1)
+
+                Test_dXY, Test_dX, Test_dY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
+                self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
+                self.Test_dX_list = np.append(self.Test_dX_list, Test_dX, axis=1)
+                self.Test_dY_list = np.append(self.Test_dY_list, Test_dY, axis=1)
+
+            if self.video_frames>0:
+                fxy = self.XYlist_net[0](mesh)
+                fx = self.Xlist_net[0](mesh[:,[0]])
+                fy = self.Ylist_net[0](mesh[:,[1]])
+                ixy = (fxy - fx - fy).detach().numpy()
+                ixy = ixy.reshape(xs.shape[1], ys.shape[0])
+                ixy_list = np.append(ixy_list, ixy[...,None], axis=2)
+
+                if (i+1)%self.video_frames==0:
+                    heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+                    axCur = heatmap_animation_ax
+                    cax = axCur.pcolormesh(xs, ys, ixy_list[:-1,:-1,0], cmap='RdBu', vmin=ixy_list[:-1,:-1,0].min(), vmax=ixy_list[:-1,:-1,0].max())
+                    heatmap_animation_fig.colorbar(cax)
+
+                    def animate(i):
+                        cax.set_array(ixy_list[:-1,:-1,i].flatten())
+                        cax.autoscale()
+
+                    writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
+                    heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=ixy_list.shape[2])
+                    heatmap_animation.save(os.path.join(self.prefix, "heatmap_{}.mp4".format(i+1)), writer=writer)
+                    ixy_list = np.zeros(ixy_list_shape)
+                    plt.close()
 
             if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
                 self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
@@ -180,6 +223,17 @@ class Minee():
 
             if self.archive_length>0 and (i+1)%self.archive_length==0:
                 self.save_array()
+        
+        if self.video_frames>0 and ixy_list.shape[0]>0:
+            heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+            axCur = heatmap_animation_ax
+            cax = axCur.pcolormesh(xs, ys, ixy_list[:-1,:-1,0], cmap='RdBu', vmin=ixy_list[:-1,:-1,0].min(), vmax=ixy_list[:-1,:-1,0].max())
+            heatmap_animation_fig.colorbar(cax)
+            writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
+            heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=ixy_list.shape[2])
+            heatmap_animation.save(os.path.join(self.prefix, "heatmap_{}.mp4".format(self.iter_num)), writer=writer)
+            ixy_list = np.zeros(ixy_list_shape)
+            plt.close()
 
         if self.log:
             self.save_figure(suffix="iter={}".format(self.iter_num))
@@ -537,12 +591,12 @@ class Minee():
 
     def state_dict(self):
         return {
-            'XYlist_net': [XY_net.state_dict() for XY_net in self.checkpoint_mi_nee["XYlist_net"]],
-            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.checkpoint_mi_nee["XYlist_optimizer"]],
-            'Xlist_net': [X_net.state_dict() for X_net in self.checkpoint_mi_nee["Xlist_net"]],
-            'Xlist_optimizer': [X_optim.state_dict() for X_optim in self.checkpoint_mi_nee["Xlist_optimizer"]],
-            'Ylist_net': [Y_net.state_dict() for Y_net in self.checkpoint_mi_nee["Ylist_net"]],
-            'Ylist_optimizer': [Y_optim.state_dict() for Y_optim in self.checkpoint_mi_nee["Ylist_optimizer"]],
+            'XYlist_net': [XY_net.state_dict() for XY_net in self.XYlist_net],
+            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.XYlist_optimizer],
+            'Xlist_net': [X_net.state_dict() for X_net in self.Xlist_net],
+            'Xlist_optimizer': [X_optim.state_dict() for X_optim in self.Xlist_optimizer],
+            'Ylist_net': [Y_net.state_dict() for Y_net in self.Ylist_net],
+            'Ylist_optimizer': [Y_optim.state_dict() for Y_optim in self.Ylist_optimizer],
             # 'XYlist_net': self.XYlist_net.state_dict(),
             # 'XYlist_optimizer': self.XYlist_optimizer.state_dict(),
             # 'Xlist_net': self.Xlist_net.state_dict(),
@@ -580,7 +634,7 @@ class Minee():
         if 'XYlist_optimizer' in state_dict:
             if dict() == type(state_dict['XYlist_optimizer'][0]):
                 for XY_optim in state_dict['XYlist_optimizer']:
-                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
+                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[0].parameters(),lr=self.lr))
                     self.XYlist_optimizer[-1].load_state_dict(XY_optim)
                 self.XYlist_optimizer = state_dict['XYlist_optimizer']
             else:

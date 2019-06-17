@@ -25,6 +25,7 @@ def getHeatMap(ax, xs, ys, z, sampleNum=0):
     # z = z[:-1, :-1]
     z_min, z_max = -np.abs(z).max(), np.abs(z).max()
     c = ax.pcolormesh(xs, ys, z, cmap='RdBu', vmin=z_min, vmax=z_max)
+    # c = ax.imshow(z, cmap='RdBu', vmin=z_min, vmax=z_max)
     # set the limits of the plot to the limits of the data
     # ax.axis([xs.min(), xs.max(), ys.min(), ys.max()])
     return ax, c

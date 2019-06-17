@@ -48,7 +48,7 @@ class MineNet(nn.Module):
         return output
 
 class Mine():
-    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=False, archive_length=0, full_batch_ref=False, estimate_rate=1):
+    def __init__(self, lr, batch_size, ma_rate, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINE", log=True, prefix="", ground_truth=0, verbose=False, full_ref=False, load_dict=False, ref_factor=1, rep=1, fix_ref_est=False, archive_length=0, full_batch_ref=False, estimate_rate=1, video_frames=0):
         self.lr = lr
         self.batch_size = batch_size
         self.ma_rate = ma_rate
@@ -68,6 +68,7 @@ class Mine():
         self.archive_length = archive_length
         self.full_batch_ref = full_batch_ref
         self.estimate_rate = estimate_rate
+        self.video_frames = video_frames
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -113,8 +114,21 @@ class Mine():
             log.write("archive_length={0}\n".format(self.archive_length))
             log.write("full_batch_ref={0}\n".format(self.full_batch_ref))
             log.write("estimate_rate={0}\n".format(self.estimate_rate))
+            log.write("video_frames={0}\n".format(self.video_frames))
             log.close()
 
+        if self.video_frames>0:
+            Xmax = self.Trainlist_X[0].max()
+            Xmin = self.Trainlist_X[0].min()
+            Ymax = self.Trainlist_Y[0].max()
+            Ymin = self.Trainlist_Y[0].min()
+            x = np.linspace(Xmin, Xmax, 300)
+            y = np.linspace(Ymin, Ymax, 300)
+            xs, ys = np.meshgrid(x,y)
+            # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            ixy_list_shape = np.append(np.array(xs.shape), 0).tolist()
+            ixy_list = np.zeros(ixy_list_shape)
 
         self.XYlist_net = []
         self.XYlist_optimizer = []
@@ -173,12 +187,33 @@ class Mine():
         for i in range(start_i, self.iter_num):
             self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size, self.ma_rate)
 
-            if i%self.estimate_rate==0:
+            if (i+1)%self.estimate_rate==0:
                 Train_dXY = self.get_estimate(self.Trainlist_X, self.Trainlist_Y)
                 self.Train_dXY_list = np.append(self.Train_dXY_list, Train_dXY, axis=1)
 
                 Test_dXY = self.get_estimate(self.Testlist_X, self.Testlist_Y)
                 self.Test_dXY_list = np.append(self.Test_dXY_list, Test_dXY, axis=1)
+
+            if self.video_frames>0:
+                ixy = self.XYlist_net[0](mesh).detach().numpy()
+                ixy = ixy.reshape(xs.shape[1], ys.shape[0])
+                ixy_list = np.append(ixy_list, ixy[...,None], axis=2)
+
+                if (i+1)%self.video_frames==0:
+                    heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+                    axCur = heatmap_animation_ax
+                    cax = axCur.pcolormesh(xs, ys, ixy_list[:-1,:-1,0], cmap='RdBu', vmin=ixy_list[:-1,:-1,0].min(), vmax=ixy_list[:-1,:-1,0].max())
+                    heatmap_animation_fig.colorbar(cax)
+
+                    def animate(i):
+                        cax.set_array(ixy_list[:-1,:-1,i].flatten())
+                        cax.autoscale()
+
+                    writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
+                    heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=ixy_list.shape[2])
+                    heatmap_animation.save(os.path.join(self.prefix, "heatmap_{}.mp4".format(i+1)), writer=writer)
+                    ixy_list = np.zeros(ixy_list_shape)
+                    plt.close()
 
             if len(self.snapshot)>snapshot_i and (i+1)%self.snapshot[snapshot_i]==0:
                 self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
@@ -193,7 +228,18 @@ class Mine():
 
             if self.archive_length>0 and (i+1)%self.archive_length==0:
                 self.save_array()
-                
+        
+        if self.video_frames>0 and ixy_list.shape[0]>0:
+            heatmap_animation_fig, heatmap_animation_ax = plt.subplots(1, 1)
+            axCur = heatmap_animation_ax
+            cax = axCur.pcolormesh(xs, ys, ixy_list[:-1,:-1,0], cmap='RdBu', vmin=ixy_list[:-1,:-1,0].min(), vmax=ixy_list[:-1,:-1,0].max())
+            heatmap_animation_fig.colorbar(cax)
+            writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
+            heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=ixy_list.shape[2])
+            heatmap_animation.save(os.path.join(self.prefix, "heatmap_{}.mp4".format(self.iter_num)), writer=writer)
+            ixy_list = np.zeros(ixy_list_shape)
+            plt.close()
+
         if self.log:
             self.save_figure(suffix="iter={}".format(self.iter_num))
         # To save new results to a db file using the following code, delete the existing db file.
@@ -206,7 +252,8 @@ class Mine():
 
     def update_mine_net(self, X, Y, batch_size, ma_rate):
         for i in range(self.rep):
-            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
+            # XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
+            XY_t = np.concatenate((X[i],Y[i]),axis=1)
             batch_XY = resample(XY_t,batch_size=batch_size)
 
             if self.full_batch_ref:
@@ -220,6 +267,8 @@ class Mine():
                 batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref,batch_Y_ref),axis=1))
             else:
                 batch_XY_ref = torch.Tensor(np.concatenate((resample(X[i],batch_size=batch_size),                                                         resample(Y[i],batch_size=batch_size)),axis=1))
+
+            batch_XY = torch.Tensor(batch_XY)
             self.XYlist_optimizer[i].zero_grad()
             fXY = self.XYlist_net[i](batch_XY)
             efXY_ref = torch.exp(self.XYlist_net[i](batch_XY_ref))
@@ -393,8 +442,8 @@ class Mine():
         return {
             'Train_dXY_list' : self.Train_dXY_list,
             'Test_dXY_list' : self.Test_dXY_list,
-            'XYlist_net': [XY_net.state_dict() for XY_net in self.checkpoint_mine["XYlist_net"]],
-            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.checkpoint_mine["XYlist_optimizer"]],
+            'XYlist_net': [XY_net.state_dict() for XY_net in self.XYlist_net],
+            'XYlist_optimizer': [XY_optim.state_dict() for XY_optim in self.XYlist_optimizer],
             # 'XYlist_net': self.XYlist_net.state_dict(),
             # 'XYlist_optimizer': self.XYlist_optimizer.state_dict(),
             'Trainlist_X': self.Trainlist_X,
@@ -422,7 +471,7 @@ class Mine():
         if 'XYlist_optimizer' in state_dict:
             if dict() == type(state_dict['XYlist_optimizer'][0]):
                 for XY_optim in state_dict['XYlist_optimizer']:
-                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
+                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[0].parameters(),lr=self.lr))
                     self.XYlist_optimizer[-1].load_state_dict(XY_optim)
                 self.XYlist_optimizer = state_dict['XYlist_optimizer']
             else:
