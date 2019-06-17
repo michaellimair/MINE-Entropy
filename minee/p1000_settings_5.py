@@ -55,7 +55,9 @@ model = {
     #         load_dict=True,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000
+    #         archive_length=5000,
+    #         estimate_rate=1,
+    #         video_frames=5000
     #     ), 
     #     'color': 'purple'
     # },
@@ -74,7 +76,10 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000
+    #         archive_length=5000,
+    #         full_batch_ref=True,
+    #         estimate_rate=1,
+    #         video_frames=5000
     #     ),
     #     'color': 'orange'
     # },
@@ -93,7 +98,10 @@ model = {
             ref_factor=1,
             rep=10,
             fix_ref_est=False,
-            archive_length=5000
+            archive_length=5000,
+            full_batch_ref=True,
+            estimate_rate=1,
+            video_frames=5000
         ),
         'color': 'magenta'
     },

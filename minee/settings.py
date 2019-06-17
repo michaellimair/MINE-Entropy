@@ -103,7 +103,10 @@ model = {
     #         ref_factor=1,
     #         rep=2,
     #         fix_ref_est=False,
-    #         archive_length=5000
+    #         archive_length=5000,
+    #         full_batch_ref=True,
+    #         estimate_rate=1,
+    #         video_frames=5000
     #     ),
     #     'color': 'magenta'
     # },
@@ -182,7 +185,9 @@ model = {
     #         ref_factor=1,
     #         rep=2,
     #         fix_ref_est=False,
-    #         archive_length=5000
+    #         archive_length=5000,
+    #         estimate_rate=1,
+    #         video_frames=5000
     #     ),
     #     'color': 'magenta'
     # },
