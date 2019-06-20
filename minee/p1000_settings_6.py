@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 45
+cpu = 24
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
@@ -61,28 +61,28 @@ model = {
         ), 
         'color': 'purple'
     },
-    'MINE_hidden=100': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True,
-            ref_factor=1,
-            rep=10,
-            fix_ref_est=False,
-            archive_length=5000,
-            full_batch_ref=True,
-            estimate_rate=1,
-            video_frames=5000
-        ),
-        'color': 'orange'
-    },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         archive_length=5000,
+    #         full_batch_ref=True,
+    #         estimate_rate=1,
+    #         video_frames=5000
+    #     ),
+    #     'color': 'orange'
+    # },
     'MINE_hidden=300': {
         'model': Mine(
             lr=lr, 
@@ -168,7 +168,7 @@ widths = [
     4,
     6,
     8,
-    10
+    # 10
 ]
 
 

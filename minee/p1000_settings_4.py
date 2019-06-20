@@ -154,10 +154,10 @@ model = {
 
 sample_size = 200
 rhos = [ 
-    0, 
-    0.2, 
-    0.4, 
-    0.6, 
+    # 0, 
+    # 0.2, 
+    # 0.4, 
+    # 0.6, 
     0.8, 
     0.9, 
     0.95, 
@@ -173,21 +173,7 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian X': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
-    # 'Mixed Gaussian +': {
+    # 'Mixed Gaussian X': {
     #     'model': MixedGaussian,
     #     'kwargs': [  # list of params
     #         {
@@ -196,12 +182,26 @@ data = {
     #             'mean2':0, 
     #             'rho1': rho, 
     #             'rho2': -rho,
-    #             'theta': np.pi/4.
     #         } for rho in rhos
     #     ], 
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
+    'Mixed Gaussian +': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':0, 
+                'mean2':0, 
+                'rho1': rho, 
+                'rho2': -rho,
+                'theta': np.pi/4.
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [
