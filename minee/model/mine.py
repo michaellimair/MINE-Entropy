@@ -163,10 +163,10 @@ class Mine():
 
             if self.full_ref:
                 Train_X_ref, Train_Y_ref = np.meshgrid(self.Trainlist_X[i], self.Trainlist_Y[i].T)
-                if len(self.Trainlist_X[i].shape)==1:
+                if self.dim==1:
                     Train_X_ref = Train_X_ref.flatten()[:,None]
                     Train_Y_ref = Train_Y_ref.flatten()[:,None]
-                elif len(self.Trainlist_X[i].shape)==2:
+                else:
                     Train_X_ref = Train_X_ref[:self.sample_size,:].reshape((self.sample_size**2), self.dim)
                     Train_Y_ref = Train_Y_ref[:,:self.sample_size].reshape(self.dim, (self.sample_size**2)).T
                 self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
@@ -257,11 +257,11 @@ class Mine():
             batch_XY = resample(XY_t,batch_size=batch_size)
 
             if self.full_batch_ref:
-                batch_X_ref, batch_Y_ref = np.meshgrid(batch_XY[0], batch_XY[1].T)
-                if len(batch_XY[0].shape)==1:
+                batch_X_ref, batch_Y_ref = np.meshgrid(batch_XY[:,0:self.dim], batch_XY[:,-self.dim:].T)
+                if self.dim==1:
                     batch_X_ref = batch_X_ref.flatten()[:,None]
                     batch_Y_ref = batch_Y_ref.flatten()[:,None]
-                elif len(batch_XY[0].shape)==2:
+                else:
                     batch_X_ref = batch_X_ref[:batch_size,:].reshape((batch_size**2), self.dim)
                     batch_Y_ref = batch_Y_ref[:,:batch_size].reshape(self.dim, (batch_size**2)).T
                 batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref,batch_Y_ref),axis=1))
