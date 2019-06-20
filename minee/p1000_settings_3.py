@@ -55,40 +55,18 @@ model = {
     #         load_dict=True,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ), 
     #     'color': 'purple'
     # },
-    'MINE_hidden=100': {
-        'model': Mine(
-            lr=lr, 
-            batch_size=batch_size,
-            ma_rate=moving_average_rate,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            full_ref=False,
-            load_dict=True,
-            ref_factor=1,
-            rep=10,
-            fix_ref_est=False,
-            archive_length=5000,
-            full_batch_ref=True,
-            estimate_rate=1,
-            video_frames=5000
-        ),
-        'color': 'orange'
-    },
-    # 'MINE_hidden=300': {
+    # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
     #         batch_size=batch_size,
     #         ma_rate=moving_average_rate,
-    #         hidden_size=hidden_size*3,
+    #         hidden_size=hidden_size,
     #         snapshot=snapshot,
     #         iter_num=iter_num,
     #         log=True,
@@ -98,13 +76,35 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ),
-    #     'color': 'magenta'
+    #     'color': 'orange'
     # },
+    'MINE_hidden=300': {
+        'model': Mine(
+            lr=lr, 
+            batch_size=batch_size,
+            ma_rate=moving_average_rate,
+            hidden_size=hidden_size*3,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            full_ref=False,
+            load_dict=True,
+            ref_factor=1,
+            rep=10,
+            fix_ref_est=False,
+            archive_length=2000,
+            full_batch_ref=True,
+            estimate_rate=1,
+            video_rate=10
+        ),
+        'color': 'magenta'
+    },
     # 'MINEE': {
     #     'model': Minee(
     #         lr=lr, 
@@ -187,33 +187,33 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    'Mixed Gaussian +': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-                'theta': np.pi/4.
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
-    # 'Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
+    # 'Mixed Gaussian +': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
     #         {
     #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':[0,0], 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'theta': np.pi/4.
     #         } for rho in rhos
     #     ], 
-    #     'varying_param_name': 'rho', 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
-    # },
+    # }, 
+    'Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':[0,0], 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [

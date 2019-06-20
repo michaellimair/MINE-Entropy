@@ -276,11 +276,11 @@ class Mine():
 
     def save_array(self):
         array_end = self.array_start + self.Train_dXY_list.shape[1]
-        if self.video_rate>0:
-            self.save_video(array_end)
         fpath = os.path.join(self.prefix, "archive")
         if not os.path.exists(fpath):
             os.mkdir(fpath)
+        if self.video_rate>0:
+            self.save_video(array_end)
         fname = os.path.join(fpath, "[{}-{}).pt".format(self.array_start, array_end))
         with open(fname, 'wb') as f:
             torch.save(self.array_state_dict(),f)
@@ -533,5 +533,5 @@ class Mine():
 
             writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
             heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=self.ixy_list[j].shape[2])
-            heatmap_animation.save(os.path.join(self.prefix, "heatmap_net={}_iter={}.mp4".format(j, iter)), writer=writer)
+            heatmap_animation.save(os.path.join(self.prefix, "archive", "heatmap_net={}_iter={}.mp4".format(j, iter)), writer=writer)
             plt.close()

@@ -55,9 +55,9 @@ model = {
             load_dict=True,
             rep=10,
             fix_ref_est=False,
-            archive_length=5000,
+            archive_length=2000,
             estimate_rate=1,
-            video_frames=5000
+            video_rate=10
         ), 
         'color': 'purple'
     },
@@ -76,10 +76,10 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ),
     #     'color': 'orange'
     # },
@@ -98,10 +98,10 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ),
     #     'color': 'magenta'
     # },
@@ -187,33 +187,33 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    'Mixed Gaussian +': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
-            {
-                'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
-                'rho1': rho, 
-                'rho2': -rho,
-                'theta': np.pi/4.
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
-    # 'Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
+    # 'Mixed Gaussian +': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
     #         {
     #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':[0,0], 
+    #             'mean1':0, 
+    #             'mean2':0, 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'theta': np.pi/4.
     #         } for rho in rhos
     #     ], 
-    #     'varying_param_name': 'rho', 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
-    # },
+    # }, 
+    'Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':[0,0], 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [
