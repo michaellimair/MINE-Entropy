@@ -28,6 +28,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+import collections
+
 class MineNet(nn.Module):
     def __init__(self, input_size=2, hidden_size=100):
         super().__init__()
@@ -455,17 +457,15 @@ class Mine():
 
     def load_state_dict(self, state_dict):
         if 'XYlist_net' in state_dict:
-            if dict() == type(state_dict['XYlist_net'][0]):
-                for XY_net in state_dict['XYlist_net']:
-                    self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
-                    self.XYlist_net[-1].load_state_dict(XY_net)
+            if collections.OrderedDict == type(state_dict['XYlist_net'][0]):
+                for k in range(len(state_dict['XYlist_net'])):
+                    self.XYlist_net[k].load_state_dict(state_dict['XYlist_net'][k])
             else:
                 self.XYlist_net = state_dict['XYlist_net']
         if 'XYlist_optimizer' in state_dict:
-            if dict() == type(state_dict['XYlist_optimizer'][0]):
-                for XY_optim in state_dict['XYlist_optimizer']:
-                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[0].parameters(),lr=self.lr))
-                    self.XYlist_optimizer[-1].load_state_dict(XY_optim)
+            if collections.OrderedDict == type(state_dict['XYlist_optimizer'][0]):
+                for k in range(len(state_dict['XYlist_optimizer'])):
+                    self.XYlist_optimizer[k].load_state_dict(state_dict['XYlist_optimizer'][k])
             else:
                 self.XYlist_optimizer = state_dict['XYlist_optimizer']
         # self.XYlist_net = state_dict['XYlist_net']

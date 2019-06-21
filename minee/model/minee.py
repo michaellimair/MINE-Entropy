@@ -12,6 +12,7 @@ import copy
 import dill
 from ..util import plot_util
 from ..util.random_util import resample, uniform_sample
+import collections
 
 # from ..utils import save_train_curve
 import matplotlib
@@ -645,53 +646,43 @@ class Minee():
 
     def load_state_dict(self, state_dict):
         if 'XYlist_net' in state_dict:
-            if dict() == type(state_dict['XYlist_net'][0]):
-                for XY_net in state_dict['XYlist_net']:
-                    self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
-                    self.XYlist_net[-1].load_state_dict(XY_net)
+            if collections.OrderedDict == type(state_dict['XYlist_net'][0]):
+                for k in range(len(state_dict['XYlist_net'])):
+                    self.XYlist_net[k].load_state_dict(state_dict['XYlist_net'][k])
             else:
                 self.XYlist_net = state_dict['XYlist_net']
         if 'XYlist_optimizer' in state_dict:
-            if dict() == type(state_dict['XYlist_optimizer'][0]):
-                for XY_optim in state_dict['XYlist_optimizer']:
-                    self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[0].parameters(),lr=self.lr))
-                    self.XYlist_optimizer[-1].load_state_dict(XY_optim)
+            if dict == type(state_dict['XYlist_optimizer'][0]):
+                for k in range(len(state_dict['XYlist_optimizer'])):
+                    self.XYlist_optimizer[k].load_state_dict(state_dict['XYlist_optimizer'][k])
             else:
                 self.XYlist_optimizer = state_dict['XYlist_optimizer']
         # self.XYlist_optimizer = state_dict['XYlist_optimizer']
         if 'Xlist_net' in state_dict:
-            if dict() == type(state_dict['Xlist_net'][0]):
-                for X_net in state_dict['Xlist_net']:
-                    self.Xlist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
-                    self.Xlist_net[-1].load_state_dict(X_net)
-                self.Xlist_net = state_dict['Xlist_net']
+            if collections.OrderedDict == type(state_dict['Xlist_net'][0]):
+                for k in range(len(state_dict['Xlist_net'])):
+                    self.Xlist_net[k].load_state_dict(state_dict['Xlist_net'][k])
             else:
                 self.Xlist_net = state_dict['Xlist_net']
         # self.Xlist_net = state_dict['Xlist_net']
         if 'Xlist_optimizer' in state_dict:
-            if dict() == type(state_dict['Xlist_optimizer'][0]):
-                for X_optim in state_dict['Xlist_optimizer']:
-                    self.Xlist_optimizer.append(optim.Adam(self.Xlist_net[i].parameters(),lr=self.lr))
-                    self.Xlist_optimizer[-1].load_state_dict(X_optim)
-                self.Xlist_optimizer = state_dict['Xlist_optimizer']
+            if dict == type(state_dict['Xlist_optimizer'][0]):
+                for k in range(len(state_dict['Xlist_optimizer'])):
+                    self.Xlist_optimizer[k].load_state_dict(state_dict['Xlist_optimizer'][k])
             else:
                 self.Xlist_optimizer = state_dict['Xlist_optimizer']
         # self.Xlist_optimizer = state_dict['Xlist_optimizer']
         if 'Ylist_net' in state_dict:
-            if dict() == type(state_dict['Ylist_net'][0]):
-                for Y_net in state_dict['Ylist_net']:
-                    self.Ylist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
-                    self.Ylist_net[-1].load_state_dict(Y_net)
-                self.Ylist_net = state_dict['Ylist_net']
+            if collections.OrderedDict == type(state_dict['Ylist_net'][0]):
+                for k in range(len(state_dict['Ylist_net'])):
+                    self.Ylist_net[k].load_state_dict(state_dict['Ylist_net'][k])
             else:
                 self.Ylist_net = state_dict['Ylist_net']
         # self.Ylist_net = state_dict['Ylist_net']
         if 'Ylist_optimizer' in state_dict:
-            if dict() == type(state_dict['Ylist_optimizer'][0]):
-                for Y_optim in state_dict['Ylist_optimizer']:
-                    self.Ylist_optimizer.append(optim.Adam(self.Ylist_net[i].parameters(),lr=self.lr))
-                    self.Ylist_optimizer[-1].load_state_dict(Y_optim)
-                self.Ylist_optimizer = state_dict['Ylist_optimizer']
+            if dict == type(state_dict['Ylist_optimizer'][0]):
+                for k in range(len(state_dict['Ylist_optimizer'])):
+                    self.Ylist_optimizer[k].load_state_dict(state_dict['Ylist_optimizer'][k])
             else:
                 self.Ylist_optimizer = state_dict['Ylist_optimizer']
         # self.Ylist_optimizer = state_dict['Ylist_optimizer']
