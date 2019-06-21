@@ -46,48 +46,48 @@ output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experime
 
 # ground truth is plotted in red
 model = {
-    # 'MINEE': {
-    #     'model': Minee(
-    #         lr=lr, 
-    #         batch_size=batch_size,
-    #         hidden_size=hidden_size,
-    #         snapshot=snapshot,
-    #         iter_num=iter_num,
-    #         log=True,
-    #         verbose=False,
-    #         ref_window_scale=1,
-    #         ref_batch_factor=1,
-    #         load_dict=True,
-    #         rep=2,
-    #         fix_ref_est=False,
-    #         archive_length=100,
-    #         estimate_rate=1,
-    #         video_rate=10
-    #     ), 
-    #     'color': 'purple'
-    # },
-    'MINE_hidden=100': {
-        'model': Mine(
+    'MINEE': {
+        'model': Minee(
             lr=lr, 
             batch_size=batch_size,
-            ma_rate=moving_average_rate,
             hidden_size=hidden_size,
             snapshot=snapshot,
             iter_num=iter_num,
             log=True,
             verbose=False,
-            full_ref=False,
+            ref_window_scale=1,
+            ref_batch_factor=1,
             load_dict=True,
-            ref_factor=1,
             rep=2,
             fix_ref_est=False,
             archive_length=100,
-            full_batch_ref=True,
             estimate_rate=1,
             video_rate=10
-        ),
-        'color': 'orange'
+        ), 
+        'color': 'purple'
     },
+    # 'MINE_hidden=100': {
+    #     'model': Mine(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         ma_rate=moving_average_rate,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         full_ref=False,
+    #         load_dict=True,
+    #         ref_factor=1,
+    #         rep=2,
+    #         fix_ref_est=False,
+    #         archive_length=100,
+    #         full_batch_ref=True,
+    #         estimate_rate=1,
+    #         video_rate=10
+    #     ),
+    #     'color': 'orange'
+    # },
     # 'MINE_hidden=300': {
     #     'model': Mine(
     #         lr=lr, 
@@ -103,7 +103,7 @@ model = {
     #         ref_factor=1,
     #         rep=2,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
     #         video_rate=5000
@@ -185,7 +185,7 @@ model = {
     #         ref_factor=1,
     #         rep=2,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         estimate_rate=1,
     #         video_rate=5000
     #     ),

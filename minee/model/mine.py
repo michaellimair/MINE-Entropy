@@ -117,6 +117,7 @@ class Mine():
             log.write("video_rate={0}\n".format(self.video_rate))
             log.close()
 
+        self.ixy_list = []
         if self.video_rate>0:
             Xmax = self.Trainlist_X[0].max()
             Xmin = self.Trainlist_X[0].min()
@@ -129,7 +130,6 @@ class Mine():
             mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             self.ixy_list_shape = np.append(np.array(xs.shape), 0).tolist()
             # ixy_list = np.zeros(self.ixy_list_shape)
-            self.ixy_list = []
             for _ in range(self.rep):
                 self.ixy_list.append(np.zeros(self.ixy_list_shape))
 
@@ -276,11 +276,11 @@ class Mine():
 
     def save_array(self):
         array_end = self.array_start + self.Train_dXY_list.shape[1]
-        if self.video_rate>0:
-            self.save_video(array_end)
         fpath = os.path.join(self.prefix, "archive")
         if not os.path.exists(fpath):
             os.mkdir(fpath)
+        if self.video_rate>0:
+            self.save_video(array_end)
         fname = os.path.join(fpath, "[{}-{}).pt".format(self.array_start, array_end))
         with open(fname, 'wb') as f:
             torch.save(self.array_state_dict(),f)
@@ -293,8 +293,9 @@ class Mine():
             self.array_start = array_end
             self.Train_dXY_list = np.zeros((self.rep, 0))
             self.Test_dXY_list = np.zeros((self.rep, 0))
-            for j in range(self.rep):
-                self.ixy_list[j] = np.zeros(self.ixy_list_shape)
+            if self.video_rate>0:
+                for j in range(self.rep):
+                    self.ixy_list[j] = np.zeros(self.ixy_list_shape)
 
     def load_all_array(self):
         fname = self.get_latest_cache_name()
@@ -307,9 +308,10 @@ class Mine():
         fname = os.path.join(self.prefix, "archive", "[{}-{}).pt".format(start, end))
         Train_dXY_list = np.zeros((self.rep, 0))
         Test_dXY_list = np.zeros((self.rep, 0))
-        ixy_list = []
-        for _ in range(self.rep):
-            ixy_list.append(np.zeros(self.ixy_list_shape))
+        # if self.video_rate>0:
+        #     ixy_list = []
+        #     for _ in range(self.rep):
+        #         ixy_list.append(np.zeros(self.ixy_list_shape))
         while(os.path.exists(fname) and end <= cache_array_start):
             state_dict = torch.load(fname, map_location = "cuda" if torch.cuda.is_available() else "cpu")
             start = self.archive_length + start
@@ -317,13 +319,13 @@ class Mine():
             fname = os.path.join(self.prefix, "archive", "[{}-{}).pt".format(start, end))
             Train_dXY_list = np.append(Train_dXY_list, state_dict['Train_dXY_list'], axis=1)
             Test_dXY_list = np.append(Test_dXY_list, state_dict['Test_dXY_list'], axis=1)
-            if 'ixy_list' in state_dict:
-                for i in range(self.rep):
-                    ixy_list[i] = np.append(ixy_list[i], state_dict['ixy_list'][i], axis=2)
+            # if self.video_rate>0 and 'ixy_list' in state_dict:
+            #     for i in range(self.rep):
+            #         ixy_list[i] = np.append(ixy_list[i], state_dict['ixy_list'][i], axis=2)
 
-        if ixy_list[0].shape[2]>=0:
-            for i in range(self.rep):
-                self.ixy_list[i] = np.append(ixy_list[i], self.ixy_list[i], axis=2)
+        # if self.video_rate>0 and ixy_list[0].shape[2]>=0:
+        #     for i in range(self.rep):
+        #         self.ixy_list[i] = np.append(ixy_list[i], self.ixy_list[i], axis=2)
         
         if self.Train_dXY_list.shape[1]>=0 and self.array_start==start:
             self.Train_dXY_list = np.append(Train_dXY_list, self.Train_dXY_list, axis=1)
@@ -448,7 +450,7 @@ class Mine():
             'array_start': self.array_start,
             'Train_start_ma': self.Train_start_ma,
             'Test_start_ma': self.Test_start_ma,
-            'ixy_list': self.ixy_list
+            # 'ixy_list': self.ixy_list
         }
 
     def load_state_dict(self, state_dict):
@@ -457,7 +459,6 @@ class Mine():
                 for XY_net in state_dict['XYlist_net']:
                     self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
                     self.XYlist_net[-1].load_state_dict(XY_net)
-                self.XYlist_net = state_dict['XYlist_net']
             else:
                 self.XYlist_net = state_dict['XYlist_net']
         if 'XYlist_optimizer' in state_dict:
@@ -465,7 +466,6 @@ class Mine():
                 for XY_optim in state_dict['XYlist_optimizer']:
                     self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[0].parameters(),lr=self.lr))
                     self.XYlist_optimizer[-1].load_state_dict(XY_optim)
-                self.XYlist_optimizer = state_dict['XYlist_optimizer']
             else:
                 self.XYlist_optimizer = state_dict['XYlist_optimizer']
         # self.XYlist_net = state_dict['XYlist_net']
@@ -486,8 +486,8 @@ class Mine():
             self.Test_start_ma = state_dict['Test_start_ma']
         if 'Train_start_ma' in state_dict:
             self.Train_start_ma = state_dict['Train_start_ma']
-        if 'ixy_list' in state_dict:
-            self.ixy_list = state_dict['ixy_list']
+        # if 'ixy_list' in state_dict:
+        #     self.ixy_list = state_dict['ixy_list']
         if 'video_rate' in state_dict:
             self.video_rate = state_dict['video_rate']
 
@@ -497,7 +497,7 @@ class Mine():
             'Test_dXY_list' : self.Test_dXY_list,
             'Train_start_ma': self.Train_start_ma,
             'Test_start_ma': self.Test_start_ma,
-            'ixy_list': self.ixy_list
+            # 'ixy_list': self.ixy_list
         }
 
     def get_latest_cache_name(self):
@@ -533,5 +533,5 @@ class Mine():
 
             writer = animation.writers['ffmpeg'](fps=1, bitrate=1800)
             heatmap_animation = animation.FuncAnimation(heatmap_animation_fig, animate, interval=200, blit=False, frames=self.ixy_list[j].shape[2])
-            heatmap_animation.save(os.path.join(self.prefix, "heatmap_net={}_iter={}.mp4".format(j, iter)), writer=writer)
+            heatmap_animation.save(os.path.join(self.prefix, "archive", "heatmap_net={}_iter={}.mp4".format(j, iter)), writer=writer)
             plt.close()

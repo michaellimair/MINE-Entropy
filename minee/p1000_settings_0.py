@@ -53,11 +53,11 @@ model = {
             ref_window_scale=1,
             ref_batch_factor=1,
             load_dict=True,
-            rep=2,
+            rep=10,
             fix_ref_est=False,
-            archive_length=5000,
+            archive_length=500,
             estimate_rate=1,
-            video_frames=5000
+            video_rate=10
         ), 
         'color': 'purple'
     },
@@ -76,10 +76,10 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ),
     #     'color': 'orange'
     # },
@@ -98,10 +98,10 @@ model = {
     #         ref_factor=1,
     #         rep=10,
     #         fix_ref_est=False,
-    #         archive_length=5000,
+    #         archive_length=2000,
     #         full_batch_ref=True,
     #         estimate_rate=1,
-    #         video_frames=5000
+    #         video_rate=10
     #     ),
     #     'color': 'magenta'
     # },
@@ -154,13 +154,13 @@ model = {
 
 sample_size = 200
 rhos = [ 
-    # 0, 
+    0, 
     0.2, 
-    # 0.4, 
+    0.4, 
     0.6, 
-    # 0.8, 
+    0.8, 
     0.9, 
-    # 0.95, 
+    0.95, 
     0.99 
     ]
 widths = [
@@ -173,7 +173,7 @@ widths = [
 
 
 data = {
-    'Mixed Gaussian x': {
+    'Mixed Gaussian X': {
         'model': MixedGaussian,
         'kwargs': [  # list of params
             {
