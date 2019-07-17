@@ -13,7 +13,7 @@ class MixedGaussian():
     # Mode[0] separation between the two bivariate gaussians along the x-axis and Mode[1] is the separation along the y-axis
     #
     # Adapated from Ali
-    def __init__(self, sample_size=400, mean1=0, mean2=0, rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
+    def __init__(self, sample_size=400, mean1=[0, 0], mean2=[0, 0], rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
         self.sample_size = sample_size
         R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
         covMat1 = np.array([[1,rho1],[rho1,1]])
@@ -22,7 +22,8 @@ class MixedGaussian():
         self.mix = mix
         self.covMat1 = np.matmul(np.matmul(R,covMat1), R.transpose())
         self.covMat2 = np.matmul(np.matmul(R,covMat2), R.transpose())
-        self.mu = np.array([mean1, mean2])
+        self.mu1 = np.array(mean1)
+        self.mu2 = np.array(mean2)
         self.name = 'bimodal'
 
     @property
@@ -34,10 +35,10 @@ class MixedGaussian():
         """
         N1 = int(self.mix*self.sample_size)
         N2 = self.sample_size-N1
-        temp1 = np.random.multivariate_normal(mean=self.mu,
+        temp1 = np.random.multivariate_normal(mean=self.mu1,
                                     cov=self.covMat1,
                                     size = N1)
-        temp2 = np.random.multivariate_normal( mean=-self.mu,
+        temp2 = np.random.multivariate_normal( mean=-self.mu2,
                                     cov=self.covMat2,
                                     size = N2)
         X = np.append(temp1,temp2,axis = 0) 
@@ -52,21 +53,21 @@ class MixedGaussian():
         # Numerical integration may cause issues for Mode values above 10 and / or correlation above .99
         # (performance suffers for choices that results in large Mode[i]*Rho[i])
         # can possibly be resolved by avoiding exponentials or by using other integration methods
-        mix, covMat1, covMat2, mu = self.mix, self.covMat1, self.covMat2, self.mu
+        mix, covMat1, covMat2, mu1 , mu2= self.mix, self.covMat1, self.covMat2, self.mu1, self.mu2
         def fxy(x,y):
             X = np.array([x, y])
-            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat1)), (X-mu).transpose() )
-            temp2 = np.matmul(np.matmul(X+mu , np.linalg.inv(covMat2)), (X+mu).transpose() )
+            temp1 = np.matmul(np.matmul(X-mu1 , np.linalg.inv(covMat1)), (X-mu1).transpose() )
+            temp2 = np.matmul(np.matmul(X-mu2 , np.linalg.inv(covMat2)), (X-mu2).transpose() )
             return mix*np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat1))) \
                     + (1-mix)*np.exp(-.5*temp2) / (2*np.pi * np.sqrt(np.linalg.det(covMat2)))
 
         def fx(x):
-            return mix*np.exp(-(x-mu[0])**2/(2*covMat1[0,0])) / np.sqrt(2*np.pi*covMat1[0,0]) \
-                    + (1-mix)*np.exp(-(x+mu[0])**2/(2*covMat2[0,0])) / np.sqrt(2*np.pi*covMat2[0,0])
+            return mix*np.exp(-(x-mu1[0])**2/(2*covMat1[0,0])) / np.sqrt(2*np.pi*covMat1[0,0]) \
+                    + (1-mix)*np.exp(-(x-mu2[0])**2/(2*covMat2[0,0])) / np.sqrt(2*np.pi*covMat2[0,0])
 
         def fy(y):
-            return mix*np.exp(-(y-mu[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
-                    + (1-mix)*np.exp(-(y+mu[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
+            return mix*np.exp(-(y-mu1[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
+                    + (1-mix)*np.exp(-(y-mu2[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
 
 
         lim = np.inf 
@@ -93,21 +94,21 @@ class MixedGaussian():
         return ax, c
 
     def I(self, x,y):
-        mix, covMat1, covMat2, mu = self.mix, self.covMat1, self.covMat2, self.mu
+        mix, covMat1, covMat2, mu1, mu2 = self.mix, self.covMat1, self.covMat2, self.mu1, self.mu2
         def fxy(x,y):
             X = np.array([x, y])
-            temp1 = np.matmul(np.matmul(X-mu , np.linalg.inv(covMat1)), (X-mu).transpose() )
-            temp2 = np.matmul(np.matmul(X+mu , np.linalg.inv(covMat2)), (X+mu).transpose() )
+            temp1 = np.matmul(np.matmul(X-mu1 , np.linalg.inv(covMat1)), (X-mu1).transpose() )
+            temp2 = np.matmul(np.matmul(X-mu2 , np.linalg.inv(covMat2)), (X-mu2).transpose() )
             return mix*np.exp(-.5*temp1) / (2*np.pi * np.sqrt(np.linalg.det(covMat1))) \
                     + (1-mix)*np.exp(-.5*temp2) / (2*np.pi * np.sqrt(np.linalg.det(covMat2)))
 
         def fx(x):
-            return mix*np.exp(-(x-mu[0])**2/(2*covMat1[0,0])) / np.sqrt(2*np.pi*covMat1[0,0]) \
-                    + (1-mix)*np.exp(-(x+mu[0])**2/(2*covMat2[0,0])) / np.sqrt(2*np.pi*covMat2[0,0])
+            return mix*np.exp(-(x-mu1[0])**2/(2*covMat1[0,0])) / np.sqrt(2*np.pi*covMat1[0,0]) \
+                    + (1-mix)*np.exp(-(x-mu2[0])**2/(2*covMat2[0,0])) / np.sqrt(2*np.pi*covMat2[0,0])
 
         def fy(y):
-            return mix*np.exp(-(y-mu[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
-                    + (1-mix)*np.exp(-(y+mu[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
+            return mix*np.exp(-(y-mu1[1])**2/(2*covMat1[1,1])) / np.sqrt(2*np.pi*covMat1[1,1]) \
+                    + (1-mix)*np.exp(-(y-mu2[1])**2/(2*covMat2[1,1])) / np.sqrt(2*np.pi*covMat2[1,1])
 
         return np.log(fxy(x, y)/(fx(x)*fy(y)))
 

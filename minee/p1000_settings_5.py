@@ -96,10 +96,10 @@ model = {
             full_ref=False,
             load_dict=True,
             ref_factor=1,
-            rep=10,
+            rep=1,
             fix_ref_est=False,
             archive_length=500,
-            full_batch_ref=True,
+            full_batch_ref=False,
             estimate_rate=1,
             video_rate=0
         ),

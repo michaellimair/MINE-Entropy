@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 24
+cpu = 72
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
@@ -37,30 +37,30 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/hphuang", "experiments")
+output_path = os.path.join("/public/chanchung", "experiments")
 
 # ground truth is plotted in red
 model = {
-    'MINEE': {
-        'model': Minee(
-            lr=lr, 
-            batch_size=batch_size,
-            hidden_size=hidden_size,
-            snapshot=snapshot,
-            iter_num=iter_num,
-            log=True,
-            verbose=False,
-            ref_window_scale=1,
-            ref_batch_factor=1,
-            load_dict=True,
-            rep=10,
-            fix_ref_est=False,
-            archive_length=500,
-            estimate_rate=1,
-            video_rate=10
-        ), 
-        'color': 'purple'
-    },
+    # 'MINEE': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=1,
+    #         load_dict=True,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         archive_length=500,
+    #         estimate_rate=1,
+    #         video_rate=10
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
@@ -96,10 +96,10 @@ model = {
             full_ref=False,
             load_dict=True,
             ref_factor=1,
-            rep=10,
+            rep=3,
             fix_ref_est=False,
-            archive_length=500,
-            full_batch_ref=True,
+            archive_length=2000,
+            full_batch_ref=False,
             estimate_rate=1,
             video_rate=10
         ),
@@ -173,20 +173,20 @@ widths = [
 
 
 data = {
-    # 'Mixed Gaussian X': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':0, 
-    #             'mean2':0, 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    'Mixed Gaussian X': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':0, 
+                'mean2':0, 
+                'rho1': rho, 
+                'rho2': -rho,
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Mixed Gaussian +': {
     #     'model': MixedGaussian,
     #     'kwargs': [  # list of params
@@ -202,31 +202,43 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    # 'Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
-    #         {
-    #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':[0,0], 
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho', 
-    #     'x_axis_name': 'correlation', 
-    # },
-    'Mixed Uniform': {
-        'model': MixedUniform, 
+    'Gaussian': {
+        'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
-                'width_a': width, 
-                'width_b': width, 
-                'mix': 0.5
-            } for width in widths
+                'rho': rho,
+                'mean':[0,0], 
+            } for rho in rhos
         ], 
-        'varying_param_name': 'width_a', 
-        'x_axis_name': 'width'
-    }, 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
+    # 'Mixed Uniform': {
+    #     'model': MixedUniform, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'width_a': width, 
+    #             'width_b': width, 
+    #             'mix': 0.5
+    #         } for width in widths
+    #     ], 
+    #     'varying_param_name': 'width_a', 
+    #     'x_axis_name': 'width'
+    # }, 
+    '4-Dimension Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':np.zeros(8).tolist(), 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
     # '6-Dimension Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [

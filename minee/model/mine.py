@@ -383,15 +383,15 @@ class Mine():
             xs, ys = np.meshgrid(x,y)
             # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-            ixy = self.XYlist_net(mesh)[0].detach().numpy()
+            ixy = self.XYlist_net[0](mesh).detach().numpy()
             ixy = ixy.reshape(xs.shape[1], ys.shape[0])
 
-            axCur = ax[2]
+            axCur = ax[0, 2]
             axCur, c = plot_util.getHeatMap(axCur, xs, ys, ixy)
             fig.colorbar(c, ax=axCur)
             axCur.set_title('heatmap of i(x,y)')
 
-            axCur = ax[3]
+            axCur = ax[0, 3]
             axCur.scatter(self.Trainlist_X[0], self.Trainlist_Y[0], color='red', marker='o', label='train')
             axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
             axCur.set_title('Plot of all train data samples and test data samples')
