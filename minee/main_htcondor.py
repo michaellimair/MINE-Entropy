@@ -199,8 +199,8 @@ def run_experiment_batch_pop_ir(pop_, bat_):
     # settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
     #                                                 {
     #                                                     'sample_size': pop_, 
-    #                                                     'mean1':0, 
-    #                                                     'mean2':0, 
+    #                                                     'mean1':[0.5, 0.5], 
+    #                                                     'mean2':[-0.5, -0.5], 
     #                                                     'rho1': rho, 
     #                                                     'rho2': -rho,
     #                                                 } for rho in settings.rhos
@@ -208,8 +208,8 @@ def run_experiment_batch_pop_ir(pop_, bat_):
     settings.data['Gaussian']['kwargs'] = [
                                             {
                                                 'sample_size':pop_, 
-                                                'mean1':0, 
-                                                'mean2':0, 
+                                                'mean1':[0.5, 0.5], 
+                                                'mean2':[-0.5, -0.5], 
                                                 'rho': rho,
                                             } for rho in settings.rhos
                                         ]
@@ -263,8 +263,8 @@ if __name__ == "__main__":
     # settings.data['Mixed Gaussian']['kwargs'] =  [  # list of params
     #                                                 {
     #                                                     'sample_size': pop_, 
-    #                                                     'mean1':0, 
-    #                                                     'mean2':0, 
+    #                                                     'mean1':[0.5, 0.5], 
+    #                                                     'mean2':[-0.5, -0.5], 
     #                                                     'rho1': rho, 
     #                                                     'rho2': -rho,
     #                                                 } for rho in settings.rhos
@@ -272,8 +272,8 @@ if __name__ == "__main__":
     settings.data['Gaussian']['kwargs'] = [
                                             {
                                                 'sample_size':pop_, 
-                                                'mean1':0, 
-                                                'mean2':0, 
+                                                'mean1':[0.5, 0.5], 
+                                                'mean2':[-0.5, -0.5], 
                                                 'rho': rho,
                                             } for rho in settings.rhos
                                         ]

@@ -114,8 +114,8 @@ data = {
         'kwargs': [  # list of params
             {
                 'sample_size':sample_size, 
-                'mean1':0, 
-                'mean2':0, 
+                'mean1':[0.5, 0.5], 
+                'mean2':[-0.5, -0.5], 
                 'rho1': rho, 
                 'rho2': -rho,
             } for rho in rhos
