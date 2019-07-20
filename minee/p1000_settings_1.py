@@ -96,12 +96,12 @@ model = {
             full_ref=False,
             load_dict=True,
             ref_factor=1,
-            rep=1,
+            rep=10,
             fix_ref_est=False,
             archive_length=500,
             full_batch_ref=False,
             estimate_rate=1,
-            video_rate=10
+            video_rate=0
         ),
         'color': 'magenta'
     },
