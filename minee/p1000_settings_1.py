@@ -101,7 +101,7 @@ model = {
             archive_length=500,
             full_batch_ref=False,
             estimate_rate=1,
-            video_rate=10
+            video_rate=0
         ),
         'color': 'magenta'
     },

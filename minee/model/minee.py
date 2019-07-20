@@ -40,7 +40,7 @@ class MineNet(nn.Module):
         return output
 
 class Minee():
-    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0, estimate_rate=1, video_rate=0):
+    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0, estimate_rate=1, video_rate=0, infinite_sample=False):
         self.lr = lr
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -59,6 +59,7 @@ class Minee():
         self.archive_length = archive_length
         self.estimate_rate = estimate_rate
         self.video_rate = video_rate
+        self.infinite_sample = infinite_sample
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -102,6 +103,7 @@ class Minee():
             log.write("archive_length={0}\n".format(self.archive_length))
             log.write("estimate_rate={0}\n".format(self.estimate_rate))
             log.write("video_rate={0}\n".format(self.video_rate))
+            log.write("infinite_sample={0}\n".format(self.infinite_sample))
             log.close()
 
         self.ixy_list = []
@@ -177,6 +179,14 @@ class Minee():
                 if self.snapshot[i] <= start_i:
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
+            if self.infinite_sample and i > 0:
+                for _ in range(self.rep):
+                    data_train = data_model.data
+                    data_test = data_model.data
+                    self.Trainlist_X.append(data_train[:,0:data_train.shape[1]//2].copy())
+                    self.Trainlist_Y.append(data_train[:,-data_train.shape[1]//2:].copy())
+                    self.Testlist_X.append(data_test[:,0:data_test.shape[1]//2].copy())
+                    self.Testlist_Y.append(data_test[:,-data_test.shape[1]//2:].copy())
             self.update_mine_net(self.Trainlist_X, self.Trainlist_Y, self.batch_size)
 
             if (i+1)%self.estimate_rate==0:
@@ -641,6 +651,7 @@ class Minee():
             'array_start': self.array_start,
             'Train_start_ma': self.Train_start_ma,
             'Test_start_ma': self.Test_start_ma,
+            'infinite_sample': self.infinite_sample,
             # 'ixy_list': self.ixy_list
         }
 
@@ -714,6 +725,8 @@ class Minee():
         #     self.ixy_list = state_dict['ixy_list']
         if 'video_rate' in state_dict:
             self.video_rate = state_dict['video_rate']
+        if 'infinite_sample' in state_dict:
+            self.infinite_sample = state_dict['infinite_sample']
 
     def array_state_dict(self):
         return {

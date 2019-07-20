@@ -57,7 +57,7 @@ model = {
             fix_ref_est=False,
             archive_length=500,
             estimate_rate=1,
-            video_rate=10
+            video_rate=0
         ), 
         'color': 'purple'
     },
