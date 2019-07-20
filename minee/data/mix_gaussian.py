@@ -38,7 +38,7 @@ class MixedGaussian():
         temp1 = np.random.multivariate_normal(mean=self.mu1,
                                     cov=self.covMat1,
                                     size = N1)
-        temp2 = np.random.multivariate_normal( mean=-self.mu2,
+        temp2 = np.random.multivariate_normal( mean=self.mu2,
                                     cov=self.covMat2,
                                     size = N2)
         X = np.append(temp1,temp2,axis = 0) 

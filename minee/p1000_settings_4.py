@@ -37,7 +37,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/chanchung", "experiments")
+output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
@@ -187,21 +187,21 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    # 'Mixed Gaussian +': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':[0.5, 0.5], 
-    #             'mean2':[-0.5, -0.5], 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #             'theta': np.pi/4.
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    'Mixed Gaussian +': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0.5, 0.5], 
+                'mean2':[-0.5, -0.5], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'theta': np.pi/4.
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Gaussian': {
     #     'model': Gaussian, 
     #     'kwargs': [
@@ -227,18 +227,18 @@ data = {
     #     'varying_param_name': 'width_a', 
     #     'x_axis_name': 'width'
     # }, 
-    '4-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(8).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # '4-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(8).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # {
     #     'name': 'Examples', 
     #     'model': XX(

@@ -37,7 +37,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/chanchung", "experiments")
+output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
@@ -57,7 +57,7 @@ model = {
             fix_ref_est=False,
             archive_length=500,
             estimate_rate=1,
-            video_rate=10
+            video_rate=0
         ), 
         'color': 'purple'
     },
@@ -173,20 +173,20 @@ widths = [
 
 
 data = {
-    # 'Mixed Gaussian X': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':[0.5, 0.5], 
-    #             'mean2':[-0.5, -0.5], 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    'Mixed Gaussian X': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0, 2], 
+                'mean2':[0, -2], 
+                'rho1': rho, 
+                'rho2': -rho,
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Mixed Gaussian +': {
     #     'model': MixedGaussian,
     #     'kwargs': [  # list of params
@@ -202,18 +202,18 @@ data = {
     #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
     #     'x_axis_name': 'correlation', 
     # }, 
-    'Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':[0,0], 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # 'Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':[0,0], 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # 'Mixed Uniform': {
     #     'model': MixedUniform, 
     #     'kwargs': [
