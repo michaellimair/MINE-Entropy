@@ -178,10 +178,10 @@ data = {
         'kwargs': [  # list of params
             {
                 'sample_size':sample_size, 
-                'mean1':[0, 2], 
-                'mean2':[0, -2], 
+                'mean1':[0, 1], 
+                'mean2':[0, -1], 
                 'rho1': rho, 
-                'rho2': -rho,
+                'rho2': rho,
             } for rho in rhos
         ], 
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot

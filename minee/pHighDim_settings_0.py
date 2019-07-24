@@ -35,7 +35,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/hphuang", "experiments")
+output_path = os.path.join("/public/zhaochao6", "experiments")
 
 # ground truth is plotted in red
 model = {
@@ -51,7 +51,7 @@ model = {
             ref_window_scale=1,
             ref_batch_factor=1,
             load_dict=True,
-            rep=10,
+            rep=3,
             fix_ref_est=False,
             archive_length=500,
             estimate_rate=1,
@@ -106,13 +106,13 @@ widths = [
 
 
 data = {
-    '10-Dimension Gaussian': {
+    '6-Dimension Gaussian': {
         'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
                 'rho': rho,
-                'mean':np.zeros(20).tolist(), 
+                'mean':np.zeros(12).tolist(), 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
