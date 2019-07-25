@@ -35,7 +35,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/zhaochao6", "experiments")
+output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
@@ -51,7 +51,7 @@ model = {
             ref_window_scale=1,
             ref_batch_factor=1,
             load_dict=True,
-            rep=5,
+            rep=10,
             fix_ref_est=False,
             archive_length=500,
             estimate_rate=1,
@@ -73,7 +73,7 @@ model = {
             full_ref=False,
             load_dict=True,
             ref_factor=1,
-            rep=5,
+            rep=10,
             fix_ref_est=False,
             archive_length=500,
             full_batch_ref=False,
