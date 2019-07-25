@@ -103,7 +103,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
 
     return mi_estimation, ground_truth, model_name, data_name, varying_param_value
 
-def plot(experiment_path):
+def plot(experiment_path, rootID, googleDrive):
     # Initialize the results dictionary
 
     # results example: 

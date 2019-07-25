@@ -19,6 +19,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from ..util.google_drive_util import GoogleDrive
 
 class MineNet(nn.Module):
     def __init__(self, input_size=2, hidden_size=100):
@@ -60,6 +61,8 @@ class Minee():
         self.estimate_rate = estimate_rate
         self.video_rate = video_rate
         self.infinite_sample = infinite_sample
+        self.prefixID = ""
+        self.googleDrive = None
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -105,6 +108,8 @@ class Minee():
             log.write("video_rate={0}\n".format(self.video_rate))
             log.write("infinite_sample={0}\n".format(self.infinite_sample))
             log.close()
+            if self.googleDrive:
+                self.googleDrive.uploadFile(log_file, "{}_train.log".format(self.model_name), self.prefixID)
 
         self.ixy_list = []
         if self.video_rate>0:
@@ -234,7 +239,10 @@ class Minee():
                         torch.save(self.state_dict(),f)
                         if self.verbose:
                             print('results saved: '+str(snapshot_i))
-                snapshot_i += 1
+                    if self.googleDrive:
+                        self.googleDrive.uploadFile(fname_i, "cache_iter={}.pt".format(i+1), parentID=self.prefixID)
+                        os.remove(fname_i)
+                        snapshot_i += 1
 
             if self.archive_length>0 and (i+1)%self.archive_length==0:
                 self.save_array()
@@ -332,9 +340,11 @@ class Minee():
         fpath = os.path.join(self.prefix, "archive")
         if not os.path.exists(fpath):
             os.mkdir(fpath)
+            self.archiveID = self.googleDrive.createFolder("archive", self.prefixID)
         if self.video_rate>0:
             self.save_video(array_end)
-        fname = os.path.join(fpath, "[{}-{}).pt".format(self.array_start, array_end))
+        fname__ = "[{}-{}).pt".format(self.array_start, array_end)
+        fname = os.path.join(fpath, fname__)
         with open(fname, 'wb') as f:
             torch.save(self.array_state_dict(),f)
             if self.verbose:
@@ -357,6 +367,9 @@ class Minee():
             if self.video_rate>0:
                 for j in range(self.rep):
                     self.ixy_list[j] = np.zeros(self.ixy_list_shape)
+        if self.googleDrive:
+            self.googleDrive.uploadFile(fname,  fname__, self.archiveID)
+            os.remove(fname)
 
     def load_all_array(self):
         fname = self.get_latest_cache_name()
@@ -616,9 +629,12 @@ class Minee():
             axCur.set_title('curve of mutual information estimation standard deviation')
 
 
-        figName = os.path.join(self.prefix, "{}_{}".format(self.model_name, suffix))
+        figName = os.path.join(self.prefix, "{}_{}.png".format(self.model_name, suffix))
         fig.savefig(figName, bbox_inches='tight')
         plt.close()
+        if self.googleDrive:
+            self.googleDrive.uploadFile(figName,   "{}_{}.png".format(self.model_name, suffix), self.prefixID)
+            os.remove(figName)
 
     def state_dict(self):
         return {

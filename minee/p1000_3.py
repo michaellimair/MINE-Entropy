@@ -10,6 +10,7 @@ from .utils import save_train_curve
 # from model import Mine, LinearReg, Kraskov
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from .util.google_drive_util import GoogleDrive
 import torch
 
 from . import p1000_settings_3 as settings
@@ -58,7 +59,7 @@ def saveResultsFig(results_dict, experiment_path=""):
     fig.savefig(figName, bbox_inches='tight')
     plt.close()
 
-def get_estimation(model_name, model, data_model, data_name, varying_param_name, varying_param_value, experiment_path, pop, batch):
+def get_estimation(model_name, model, data_model, data_name, varying_param_name, varying_param_value, experiment_path, pop, batch, rootID, googleDrive):
     """
     Returns: mi estimate (float)
     """
@@ -69,16 +70,19 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     # data_train = data_model.data
     # data_test = data_model.data
     # if data_train.shape[1]%2 == 1 or data_test.shape[1]%2 == 1:
-    #     raise ValueError("dim of gaussian should be even")
+    #     raise ValueError("dim of data should be even")
     # X_train = data_train[:,0:data_train.shape[1]//2]
     # Y_train = data_train[:,-data_train.shape[1]//2:]
     # X_test = data_test[:,0:data_test.shape[1]//2]
     # Y_test = data_test[:,-data_test.shape[1]//2:]
     ground_truth = data_model.ground_truth
 
-    prefix_name_loop = os.path.join(experiment_path, "pop={}_batch={}_{}_{}={}_model={}/".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name))
+    pathname = "pop={}_batch={}_{}_{}={}_model={}".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name)
+    prefix_name_loop = os.path.join(experiment_path, pathname)
     if not os.path.exists(prefix_name_loop):
         os.makedirs(prefix_name_loop, exist_ok=True)
+        if googleDrive:
+            prefixID = googleDrive.createFolder(pathname, rootID)
     
     # if X_train.shape[1]==1:
     #     #Plot Ground Truth MI
@@ -103,6 +107,8 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     model['model'].batch_size = batch
     model['model'].model_name = model_name
     model['model'].prefix = prefix_name_loop
+    model['model'].googleDrive = googleDrive
+    model['model'].prefixID = prefixID
     # model['model'].prefix = os.path.join(prefix_name_loop, model_name)
     # if not os.path.exists(model['model'].prefix):
     #     os.makedirs(model['model'].prefix)
@@ -122,7 +128,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
 
     return mi_estimation, ground_truth, model_name, data_name, varying_param_value
 
-def plot(experiment_path):
+def plot(experiment_path, rootID, googleDrive):
     # Initialize the results dictionary
 
     # results example: 
@@ -164,7 +170,9 @@ def plot(experiment_path):
                                                               kwargs[data['varying_param_name']], 
                                                               experiment_path,
                                                               pop_,
-                                                              batch_) 
+                                                              batch_,
+                                                              rootID,
+                                                              googleDrive) 
                                                                     for pop_, batch_ in tqdm(settings.pop_batch)
                                                                     for model_name, model in tqdm(settings.model.items())
                                                                     for data_name, data in tqdm(settings.data.items())
@@ -182,13 +190,19 @@ def run_experiment():
     # prompt
     experiment_name = input('Please enter the experiment name: ')
     experiment_path = os.path.join(settings.output_path, experiment_name)
+    googleDrive = GoogleDrive()
+    googleDrive.connect()
     while True:
         if os.path.exists(experiment_path):
+            rootID = googleDrive.searchFolder(experiment_name)
+            if not rootID:
+                raise ValueError("folder {} not found in googledrive".format(experiment_name))
             # experiment_name = input('experiment - \"{}\" already exists! Please re-enter the experiment name: '.format(experiment_name))
             # experiment_path = os.path.join(settings.output_path, experiment_name)
             break
         else:
             os.makedirs(experiment_path)
+            rootID = googleDrive.createFolder(experiment_name)
             print('Output will be saved into {}'.format(experiment_path))
             break
     # save the settings
@@ -196,7 +210,8 @@ def run_experiment():
     mmi_dir_path = os.path.dirname(os.path.abspath(__file__))
     settings_path = os.path.join(mmi_dir_path, settings_file)
     copyfile(settings_path, os.path.join(experiment_path, settings_file))
-    plot(experiment_path)
+    googleDrive.uploadFile(settings_path, 'settings.py', rootID)
+    plot(experiment_path, rootID, googleDrive)
 
 if __name__ == "__main__":
     random_seed = 0
