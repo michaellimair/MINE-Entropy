@@ -5,10 +5,11 @@ from scipy.integrate import quad, dblquad
 from scipy.special import xlogy
 
 class Gaussian():
-    def __init__(self, sample_size, rho, mean=[0, 0], varValue=0):
+    def __init__(self, sample_size, rho, mean=[0, 0], var=1):
         self.sample_size = sample_size
         self.mean = mean
         self.rho = rho
+        self.var = var
 
     @property
     def data(self):
@@ -18,7 +19,7 @@ class Gaussian():
         """
         if len(self.mean)%2 == 1:
             raise ValueError("length of mean array is assummed to be even")
-        cov = (np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]).tolist()
+        cov = (self.var*np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]).tolist()
         return np.random.multivariate_normal(
             mean=self.mean,
             cov=cov, 
@@ -30,7 +31,7 @@ class Gaussian():
         if len(self.mean)%2 == 1:
             raise ValueError("length of mean array is assummed to be even")
         dim = len(self.mean)//2
-        return -0.5*np.log(1-self.rho**2)*dim
+        return -0.5*np.log(self.var**2-self.rho**2)*dim
 
     def plot_i(self, ax, xs, ys):
         if len(self.mean)!=2:
@@ -50,7 +51,7 @@ class Gaussian():
         if len(self.mean)%2 == 1:
             raise ValueError("length of mean array is assummed to be even")
         dim = len(self.mean)//2
-        covMat, mu = (np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]), np.array(self.mean)
+        covMat, mu = (self.var*np.identity(len(self.mean))+self.rho*np.identity(len(self.mean))[::-1]), np.array(self.mean)
         def fxy(x,y):
             if type(x)==np.float64 or type(x)==float:
                 X = np.array([x, y])
