@@ -39,6 +39,29 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
+    'MINEE_w_Gaussian_ref': {
+        'model': Minee(
+            lr=lr, 
+            batch_size=batch_size,
+            hidden_size=hidden_size,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            ref_window_scale=1,
+            ref_batch_factor=1,
+            load_dict=True,
+            rep=10,
+            fix_ref_est=False,
+            archive_length=500,
+            estimate_rate=1,
+            video_rate=0,
+            infinite_sample=True,
+            gaussian_ref=True,
+            gaussian_ref_var=3
+        ), 
+        'color': 'purple'
+    },
     'MINEE': {
         'model': Minee(
             lr=lr, 
@@ -87,14 +110,14 @@ model = {
 
 sample_size = 400
 rhos = [ 
-    0, 
-    0.2, 
-    0.4, 
-    0.6, 
-    0.8, 
+    # 0, 
+    # 0.2, 
+    # 0.4, 
+    # 0.6, 
+    # 0.8, 
     0.9, 
-    0.95, 
-    0.99 
+    # 0.95, 
+    # 0.99 
     ]
 widths = [
     2,
@@ -106,18 +129,33 @@ widths = [
 
 
 data = {
-    '6-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
+    '6-Dimension Mixed Gaussian X': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
             {
                 'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(12).tolist(), 
+                'mean1':[0.5, 0.5], 
+                'mean2':[-0.5, -0.5], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 6
             } for rho in rhos
         ], 
-        'varying_param_name': 'rho', 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
-    },
+    }, 
+    # '6-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(12).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # {
     #     'name': 'Examples', 
     #     'model': XX(

@@ -87,14 +87,14 @@ model = {
 
 sample_size = 400
 rhos = [ 
-    0, 
-    0.2, 
-    0.4, 
-    0.6, 
-    0.8, 
+    # 0, 
+    # 0.2, 
+    # 0.4, 
+    # 0.6, 
+    # 0.8, 
     0.9, 
-    0.95, 
-    0.99 
+    # 0.95, 
+    # 0.99 
     ]
 widths = [
     2,
@@ -106,13 +106,13 @@ widths = [
 
 
 data = {
-    '10-Dimension Gaussian': {
+    '6-Dimension Gaussian': {
         'model': Gaussian, 
         'kwargs': [
             {
                 'sample_size':sample_size, 
                 'rho': rho,
-                'mean':np.zeros(20).tolist(), 
+                'mean':np.zeros(12).tolist(), 
             } for rho in rhos
         ], 
         'varying_param_name': 'rho', 
