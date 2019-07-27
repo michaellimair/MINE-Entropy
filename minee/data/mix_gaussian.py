@@ -13,7 +13,7 @@ class MixedGaussian():
     # Mode[0] separation between the two bivariate gaussians along the x-axis and Mode[1] is the separation along the y-axis
     #
     # Adapated from Ali
-    def __init__(self, sample_size=400, mean1=[0, 0], mean2=[0, 0], rho1=0.9, rho2=-0.9, mix=0.5, theta=0):
+    def __init__(self, sample_size=400, mean1=[0, 0], mean2=[0, 0], rho1=0.9, rho2=-0.9, mix=0.5, theta=0, dim=1):
         self.sample_size = sample_size
         R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
         covMat1 = np.array([[1,rho1],[rho1,1]])
@@ -25,13 +25,14 @@ class MixedGaussian():
         self.mu1 = np.array(mean1)
         self.mu2 = np.array(mean2)
         self.name = 'bimodal'
+        self.dim = dim
 
     @property
     def data(self):
         """[summary]
         
         Returns:
-            [np.array] -- [N by 2 matrix]
+            [np.array] -- [N by 2 X dim matrix]
         """
         N1 = int(self.mix*self.sample_size)
         N2 = self.sample_size-N1
@@ -43,6 +44,19 @@ class MixedGaussian():
                                     size = N2)
         X = np.append(temp1,temp2,axis = 0) 
         np.random.shuffle(X)
+        index_mid = X.shape[1]//2
+        # accumulate sample and insert new sample into middle of dim axis
+        for _ in range(1, self.dim):
+            temp1 = np.random.multivariate_normal(mean=self.mu1,
+                                        cov=self.covMat1,
+                                        size = N1)
+            temp2 = np.random.multivariate_normal( mean=self.mu2,
+                                        cov=self.covMat2,
+                                        size = N2)
+            X_ = np.append(temp1,temp2,axis = 0).copy()
+            np.random.shuffle(X_)
+            X = np.insert(X, [index_mid], X_, axis=1)
+            index_mid = X.shape[1]//2
         return X
 
     @property
@@ -79,7 +93,7 @@ class MixedGaussian():
         # print(isReliable)
         hxy = dblquad(lambda x, y: -xlogy(fxy(x,y),fxy(x,y)), -lim, lim, lambda x:-lim, lambda x:lim)
         isReliable = np.maximum(isReliable,hxy[1])
-        return hx[0] + hy[0] - hxy[0]
+        return (hx[0] + hy[0] - hxy[0])*self.dim
         # return [hx[0] + hy[0] - hxy[0], isReliable, hx[0], hy[0]]
 
     def plot_i(self, ax, xs, ys):
@@ -223,7 +237,7 @@ if __name__ == '__main__':
     # plt.show(block=False)
     # input("press enter to close")
     # plt.close(fig)
-    bimodel=MixedGaussian()
+    bimodel=MixedGaussian(dim=3)
     data = bimodel.data
     import os
     import matplotlib
