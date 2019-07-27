@@ -20,6 +20,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from ..util.google_drive_util import GoogleDrive
+from ..data.gaussian import Gaussian
 
 class MineNet(nn.Module):
     def __init__(self, input_size=2, hidden_size=100):
@@ -41,7 +42,7 @@ class MineNet(nn.Module):
         return output
 
 class Minee():
-    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0, estimate_rate=1, video_rate=0, infinite_sample=False):
+    def __init__(self, lr, batch_size, hidden_size=100, snapshot=[], iter_num=int(1e+3), model_name="MINEE", log=True, prefix="", ground_truth=0, verbose=False, ref_window_scale=1, ref_batch_factor=1, load_dict=False, rep=1, fix_ref_est=False, archive_length=0, estimate_rate=1, video_rate=0, infinite_sample=False, gaussian_ref_var=1, gaussian_ref=False):
         self.lr = lr
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -63,6 +64,8 @@ class Minee():
         self.infinite_sample = infinite_sample
         self.prefixID = ""
         self.googleDrive = None
+        self.gaussian_ref = gaussian_ref
+        self.gaussian_ref_var = gaussian_ref_var
 
     def fit(self, data_model):
         data_train = data_model.data
@@ -107,6 +110,8 @@ class Minee():
             log.write("estimate_rate={0}\n".format(self.estimate_rate))
             log.write("video_rate={0}\n".format(self.video_rate))
             log.write("infinite_sample={0}\n".format(self.infinite_sample))
+            log.write("gaussian_ref={0}\n".format(self.gaussian_ref))
+            log.write("gaussian_ref_var={0}\n".format(self.gaussian_ref_var))
             log.close()
             if self.googleDrive:
                 self.googleDrive.uploadFile(log_file, "{}_train.log".format(self.model_name), self.prefixID)
@@ -169,10 +174,17 @@ class Minee():
         self.XYlist_ref_t = []
         self.Xlist_ref_t = []
         self.Ylist_ref_t = []
+        if self.gaussian_ref:
+            self.gaussian = Gaussian(sample_size=self.sample_size, rho=0, mean=np.zeros(self.dim*2).tolist(), var=self.gaussian_ref_var)
         if self.fix_ref_est:
             for i in range(self.rep):
-                Train_X_ref = uniform_sample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
-                Train_Y_ref = uniform_sample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
+                if self.gaussian_ref:
+                    Train_ref = self.gaussian.data
+                    Train_X_ref = Train_ref[:,0:self.dim].copy()
+                    Train_Y_ref = Train_ref[:,-self.dim:].copy()
+                else:
+                    Train_X_ref = uniform_sample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
+                    Train_Y_ref = uniform_sample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
                 self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
                 self.Xlist_ref_t.append(torch.Tensor(Train_X_ref))
@@ -269,6 +281,8 @@ class Minee():
                     print('results saved to '+fname)
 
     def update_mine_net(self, X, Y, batch_size):
+        if self.gaussian_ref:
+            self.gaussian.sample_size = int(self.ref_batch_factor*batch_size)
         for i in range(self.rep):
             XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
             X_t = torch.Tensor(X[i])
@@ -276,8 +290,13 @@ class Minee():
             batch_XY = resample(XY_t,batch_size=batch_size)
             batch_X = resample(X_t, batch_size=batch_size)
             batch_Y = resample(Y_t,batch_size=batch_size)
-            batch_X_ref = uniform_sample(X[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-            batch_Y_ref = uniform_sample(Y[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
+            if self.gaussian_ref:
+                batch_ref = self.gaussian.data
+                batch_X_ref = batch_ref[:,0:self.dim].copy()
+                batch_Y_ref = batch_ref[:,-self.dim:].copy()
+            else:
+                batch_X_ref = uniform_sample(X[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
+                batch_Y_ref = uniform_sample(Y[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
             batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref, batch_Y_ref),axis=1))
             batch_X_ref = batch_XY_ref[:,0:self.dim]
             batch_Y_ref = batch_XY_ref[:,-self.dim:]
@@ -310,6 +329,8 @@ class Minee():
         dXY_list = np.zeros((self.rep, 1))
         dY_list = np.zeros((self.rep, 1))
         dX_list = np.zeros((self.rep, 1))
+        if self.gaussian_ref:
+            self.gaussian.sample_size = int(self.sample_size*self.ref_batch_factor)
         for i in range(self.rep):
             XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
             X_t = torch.Tensor(X[i])
@@ -318,13 +339,17 @@ class Minee():
                 XY_ref_t = self.XYlist_ref_t[i]
                 X_ref_t = self.Xlist_ref_t[i]
                 Y_ref_t = self.Ylist_ref_t[i]
+            elif self.gaussian_ref:
+                Train_ref = self.gaussian.data
+                Train_X_ref = Train_ref[:,0:self.dim]
+                Train_Y_ref = Train_ref[:,-self.dim:]
             else:
                 Train_X_ref = uniform_sample(X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
                 Train_Y_ref = uniform_sample(Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
-                XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
-                Y_ref_t = torch.Tensor(Train_Y_ref)
-                X_ref_t = torch.Tensor(Train_X_ref)
+            XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
+            Y_ref_t = torch.Tensor(Train_Y_ref)
+            X_ref_t = torch.Tensor(Train_X_ref)
             dXY = torch.mean(self.XYlist_net[i](XY_t)) - (torch.logsumexp(self.XYlist_net[i](XY_ref_t), 0) - self.log_ref_size)
             dX = torch.mean(self.Xlist_net[i](X_t)) - (torch.logsumexp(self.Xlist_net[i](X_ref_t), 0) - self.log_ref_size)
             dY = torch.mean(self.Ylist_net[i](Y_t)) - (torch.logsumexp(self.Ylist_net[i](Y_ref_t), 0) - self.log_ref_size)
@@ -495,7 +520,7 @@ class Minee():
             axCur.set_title('curve of testing data mutual information')
 
             # Trained Function contour plot
-            if len(self.Trainlist_X) == 1 and self.Trainlist_X[0].shape[1] == 1 and self.Trainlist_Y[0].shape[1] == 1:
+            if self.Trainlist_X[0].shape[1] == 1 and self.Trainlist_Y[0].shape[1] == 1:
                 Xmax = self.Trainlist_X[0].max()
                 Xmin = self.Trainlist_X[0].min()
                 Ymax = self.Trainlist_Y[0].max()
@@ -524,8 +549,11 @@ class Minee():
 
                 axCur = ax[1,2]
                 axCur.scatter(self.Trainlist_X[0], self.Trainlist_Y[0], color='red', marker='o', label='train')
-                axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
-                axCur.set_title('Plot of all train data samples and test data samples')
+                ref = self.gaussian.data
+                axCur.scatter(ref[:,0], ref[:,1], color='green', marker='x', label='test')
+                axCur.set_title('Plot of sample and ref')
+                # axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
+                # axCur.set_title('Plot of all train data samples and test data samples')
                 axCur.legend()
         else:
             fig, ax = plt.subplots(3,4, figsize=(90, 45))
