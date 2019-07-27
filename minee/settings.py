@@ -53,15 +53,38 @@ model = {
             ref_window_scale=1,
             ref_batch_factor=1,
             load_dict=True,
-            rep=2,
+            rep=1,
             fix_ref_est=False,
             archive_length=200,
             estimate_rate=1,
             video_rate=0,
-            infinite_sample=True
+            infinite_sample=True,
+            gaussian_ref=True,
+            gaussian_ref_var=3
         ), 
         'color': 'purple'
     },
+    # 'MINEE': {
+    #     'model': Minee(
+    #         lr=lr, 
+    #         batch_size=batch_size,
+    #         hidden_size=hidden_size,
+    #         snapshot=snapshot,
+    #         iter_num=iter_num,
+    #         log=True,
+    #         verbose=False,
+    #         ref_window_scale=1,
+    #         ref_batch_factor=1,
+    #         load_dict=True,
+    #         rep=10,
+    #         fix_ref_est=False,
+    #         archive_length=500,
+    #         estimate_rate=1,
+    #         video_rate=0,
+    #         infinite_sample=True
+    #     ), 
+    #     'color': 'purple'
+    # },
     # 'MINE_hidden=100': {
     #     'model': Mine(
     #         lr=lr, 
@@ -175,20 +198,21 @@ widths = [
 
 
 data = {
-    # 'Mixed Gaussian X': {
-    #     'model': MixedGaussian,
-    #     'kwargs': [  # list of params
-    #         {
-    #             'sample_size':sample_size, 
-    #             'mean1':[0.5, 0.5], 
-    #             'mean2':[-0.5, -0.5], 
-    #             'rho1': rho, 
-    #             'rho2': -rho,
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-    #     'x_axis_name': 'correlation', 
-    # }, 
+    '2-Dimension Mixed Gaussian X': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0.5, 0.5], 
+                'mean2':[-0.5, -0.5], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 2
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     # 'Mixed Gaussian +': {
     #     'model': MixedGaussian,
     #     'kwargs': [  # list of params
@@ -229,18 +253,18 @@ data = {
     #     'varying_param_name': 'width_a', 
     #     'x_axis_name': 'width'
     # }, 
-    '4-Dimension Gaussian': {
-        'model': Gaussian, 
-        'kwargs': [
-            {
-                'sample_size':sample_size, 
-                'rho': rho,
-                'mean':np.zeros(8).tolist(), 
-            } for rho in rhos
-        ], 
-        'varying_param_name': 'rho', 
-        'x_axis_name': 'correlation', 
-    },
+    # '4-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(8).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # {
     #     'name': 'Examples', 
     #     'model': XX(
