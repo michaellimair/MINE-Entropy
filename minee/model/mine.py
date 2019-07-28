@@ -199,6 +199,10 @@ class Mine():
                     snapshot_i = i+1
         for i in range(start_i, self.iter_num):
             if self.infinite_sample and i > 0:
+                self.Trainlist_X = []
+                self.Trainlist_Y = []
+                self.Testlist_X = []
+                self.Testlist_Y = []
                 for _ in range(self.rep):
                     data_train = data_model.data
                     data_test = data_model.data
