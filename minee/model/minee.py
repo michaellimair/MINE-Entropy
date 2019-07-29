@@ -553,8 +553,8 @@ class Minee():
 
                 axCur = ax[1,2]
                 axCur.scatter(self.Trainlist_X[0], self.Trainlist_Y[0], color='red', marker='o', label='train')
-                ref = self.gaussian.data
-                axCur.scatter(ref[:,0], ref[:,1], color='green', marker='x', label='test')
+                # ref = self.gaussian.data
+                # axCur.scatter(ref[:,0], ref[:,1], color='green', marker='x', label='test')
                 axCur.set_title('Plot of sample and ref')
                 # axCur.scatter(self.Testlist_X[0], self.Testlist_Y[0], color='green', marker='x', label='test')
                 # axCur.set_title('Plot of all train data samples and test data samples')
