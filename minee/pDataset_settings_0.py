@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 90
+cpu = 56
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
@@ -105,7 +105,7 @@ sample_size = 400
 # ]
 
 xy_comb = list()
-for j in range(1, 10):
+for j in range(1, 8):
     for i in range(j):
         xy_comb.append((i,j))
 
@@ -115,7 +115,7 @@ data = {
         'model': Dataset, 
         'kwargs': [
             {
-                'filepath':'/Users/Thomas/Downloads/energydata_complete.csv', 
+                'filepath':'energydata_complete.csv', 
                 'col_x':x_col, 
                 'col_y':y_col,
                 'index':"({}_{})".format(x_col, y_col)

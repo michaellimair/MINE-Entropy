@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 72
+cpu = 10
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
@@ -49,14 +49,14 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=1,
+            ref_batch_factor=300,
             load_dict=True,
             rep=10,
             fix_ref_est=False,
             archive_length=500,
             estimate_rate=1,
             video_rate=0,
-            infinite_sample=True,
+            infinite_sample=False,
             gaussian_ref=True,
             gaussian_ref_var=3
         ), 
@@ -72,7 +72,7 @@ model = {
             log=True,
             verbose=False,
             ref_window_scale=1,
-            ref_batch_factor=1,
+            ref_batch_factor=300,
             load_dict=True,
             rep=10,
             fix_ref_est=False,
@@ -99,7 +99,7 @@ model = {
             rep=10,
             fix_ref_est=False,
             archive_length=500,
-            full_batch_ref=False,
+            full_batch_ref=True,
             estimate_rate=1,
             video_rate=0,
             infinite_sample=True
@@ -134,8 +134,8 @@ data = {
         'kwargs': [  # list of params
             {
                 'sample_size':sample_size, 
-                'mean1':[0.5, 0.5], 
-                'mean2':[-0.5, -0.5], 
+                'mean1':[0, 0], 
+                'mean2':[0, 0], 
                 'rho1': rho, 
                 'rho2': -rho,
                 'dim': 6
@@ -144,18 +144,18 @@ data = {
         'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
         'x_axis_name': 'correlation', 
     }, 
-    # '6-Dimension Gaussian': {
-    #     'model': Gaussian, 
-    #     'kwargs': [
-    #         {
-    #             'sample_size':sample_size, 
-    #             'rho': rho,
-    #             'mean':np.zeros(12).tolist(), 
-    #         } for rho in rhos
-    #     ], 
-    #     'varying_param_name': 'rho', 
-    #     'x_axis_name': 'correlation', 
-    # },
+    '6-Dimension Gaussian': {
+        'model': Gaussian, 
+        'kwargs': [
+            {
+                'sample_size':sample_size, 
+                'rho': rho,
+                'mean':np.zeros(12).tolist(), 
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho', 
+        'x_axis_name': 'correlation', 
+    },
     # {
     #     'name': 'Examples', 
     #     'model': XX(

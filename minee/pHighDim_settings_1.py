@@ -17,14 +17,14 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 72
+cpu = 20
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
 hidden_size = 300
 
 pop_batch = [
-    (1000, 1000)
+    (1000, 100)
     ]
 
 iter_num = int(1e6)
@@ -39,6 +39,29 @@ output_path = os.path.join("/public/hphuang", "experiments")
 
 # ground truth is plotted in red
 model = {
+    'MINEE_w_Gaussian_ref': {
+        'model': Minee(
+            lr=lr, 
+            batch_size=batch_size,
+            hidden_size=hidden_size,
+            snapshot=snapshot,
+            iter_num=iter_num,
+            log=True,
+            verbose=False,
+            ref_window_scale=1,
+            ref_batch_factor=1,
+            load_dict=True,
+            rep=10,
+            fix_ref_est=False,
+            archive_length=500,
+            estimate_rate=1,
+            video_rate=0,
+            infinite_sample=False,
+            gaussian_ref=True,
+            gaussian_ref_var=3
+        ), 
+        'color': 'purple'
+    },
     'MINEE': {
         'model': Minee(
             lr=lr, 
@@ -56,7 +79,9 @@ model = {
             archive_length=500,
             estimate_rate=1,
             video_rate=0,
-            infinite_sample=True
+            infinite_sample=False,
+            gaussian_ref=False,
+            gaussian_ref_var=3
         ), 
         'color': 'purple'
     },
@@ -79,7 +104,7 @@ model = {
             full_batch_ref=False,
             estimate_rate=1,
             video_rate=0,
-            infinite_sample=True
+            infinite_sample=False
         ),
         'color': 'magenta'
     },
@@ -106,6 +131,68 @@ widths = [
 
 
 data = {
+    '6-Dimension Mixed Gaussian +': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0, 0], 
+                'mean2':[0, 0], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 6,
+                'theta': np.pi/4
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
+    '6-Dimension Mixed Gaussian + separate': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0, 2], 
+                'mean2':[0, -2], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 6,
+                'theta': np.pi/4
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
+    '6-Dimension Mixed Gaussian X': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0, 0], 
+                'mean2':[0, 0], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 6
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
+    '6-Dimension Mixed Gaussian X separate': {
+        'model': MixedGaussian,
+        'kwargs': [  # list of params
+            {
+                'sample_size':sample_size, 
+                'mean1':[0, 2], 
+                'mean2':[0, -2], 
+                'rho1': rho, 
+                'rho2': -rho,
+                'dim': 6
+            } for rho in rhos
+        ], 
+        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+        'x_axis_name': 'correlation', 
+    }, 
     '6-Dimension Gaussian': {
         'model': Gaussian, 
         'kwargs': [
@@ -118,6 +205,18 @@ data = {
         'varying_param_name': 'rho', 
         'x_axis_name': 'correlation', 
     },
+    # '6-Dimension Gaussian': {
+    #     'model': Gaussian, 
+    #     'kwargs': [
+    #         {
+    #             'sample_size':sample_size, 
+    #             'rho': rho,
+    #             'mean':np.zeros(12).tolist(), 
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho', 
+    #     'x_axis_name': 'correlation', 
+    # },
     # {
     #     'name': 'Examples', 
     #     'model': XX(
