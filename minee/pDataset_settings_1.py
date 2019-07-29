@@ -121,7 +121,7 @@ data = {
                 'col_y':y_col,
                 'index':"({}_{})".format(x_col, y_col),
                 'delim':',',
-                'col_nan'=0
+                'col_nan':0
             } for (x_col,y_col) in xy_comb
         ], 
         'varying_param_name': 'index', 
