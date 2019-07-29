@@ -24,7 +24,7 @@ moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (1364, 100)
+    (1363, 100)
     ]
 
 iter_num = int(1e6)

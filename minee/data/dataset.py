@@ -19,6 +19,7 @@ class Dataset():
         data = np.genfromtxt(self.path, delimiter=self.delim)[self.row_nan:,self.col_nan:]
         self.totalRow, self.totalCol = data.shape
         self.X = data[:,(self.col_x, self.col_y)].copy()
+        self.X = self.X[~np.isnan(self.X).any(axis=1)]
 
     @property
     def data(self):
