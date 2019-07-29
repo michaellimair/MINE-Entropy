@@ -24,7 +24,7 @@ moving_average_rate = 0.1
 hidden_size = 100
 
 pop_batch = [
-    (19735, 1000)
+    (1364, 100)
     ]
 
 iter_num = int(1e6)
@@ -104,18 +104,19 @@ sample_size = 400
 #     10
 # ]
 
-xy_comb = list()
-for j in range(1, 8):
-    for i in range(j):
-        xy_comb.append((i,j))
+xy_comb = [(5,11), (10,15), (6,16), (13,16), (15,16), (11,15)]
+# xy_comb = list()
+# for j in range(1, 8):
+#     for i in range(j):
+#         xy_comb.append((i,j))
 
 
 data = {
-    'energydata_complete': {
+    'polls': {
         'model': Dataset, 
         'kwargs': [
             {
-                'filepath':'energydata_complete.csv', 
+                'filepath':'polls.csv', 
                 'col_x':x_col, 
                 'col_y':y_col,
                 'index':"({}_{})".format(x_col, y_col)
