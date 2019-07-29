@@ -5,13 +5,14 @@ import torch
 # torch.manual_seed(seed=random_seed)
 from .model.mine import Mine
 from .model.minee import Minee
-from .model.kraskov import Kraskov
+# from .model.kraskov import Kraskov
 
 
 from .data.mix_gaussian import MixedGaussian
 from .data.mix_uniform import MixedUniform
 from .data.gaussian import Gaussian
-from .data.uniform_mmi import UniformMMI
+# from .data.uniform_mmi import UniformMMI
+from .data.dataset import Dataset
 import math
 import os
 from datetime import datetime
@@ -178,41 +179,74 @@ model = {
 }
 
 sample_size = 200
-rhos = [ 
-    # 0, 
-    # 0.2, 
-    # 0.4, 
-    # 0.6, 
-    # 0.8, 
-    0.9, 
-    # 0.95, 
-    # 0.99 
-    ]
-widths = [
-    2,
-    4,
-    6,
-    8,
-    10
-]
+# rhos = [ 
+#     # 0, 
+#     # 0.2, 
+#     # 0.4, 
+#     # 0.6, 
+#     # 0.8, 
+#     0.9, 
+#     # 0.95, 
+#     # 0.99 
+#     ]
+# widths = [
+#     2,
+#     4,
+#     6,
+#     8,
+#     10
+# ]
+
+xy_comb = list()
+for j in range(1, 10):
+    for i in range(j):
+        xy_comb.append((i,j))
 
 
 data = {
-    '2-Dimension Mixed Gaussian X': {
-        'model': MixedGaussian,
-        'kwargs': [  # list of params
+    'energydata_complete': {
+        'model': Dataset, 
+        'kwargs': [
             {
-                'sample_size':sample_size, 
-                'mean1':[0.5, 0.5], 
-                'mean2':[-0.5, -0.5], 
-                'rho1': rho, 
-                'rho2': -rho,
-                'dim': 2
-            } for rho in rhos
+                'filepath':'/Users/Thomas/Downloads/energydata_complete.csv', 
+                'col_x':x_col, 
+                'col_y':y_col,
+                'index':"({}_{})".format(x_col, y_col)
+            } for (x_col,y_col) in xy_comb
         ], 
-        'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
-        'x_axis_name': 'correlation', 
-    }, 
+        'varying_param_name': 'index', 
+        'x_axis_name': 'combination', 
+    },
+    # '2-Dimension Mixed Gaussian X': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':[0.5, 0.5], 
+    #             'mean2':[-0.5, -0.5], 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'dim': 2
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
+    # '6-Dimension Mixed Gaussian X': {
+    #     'model': MixedGaussian,
+    #     'kwargs': [  # list of params
+    #         {
+    #             'sample_size':sample_size, 
+    #             'mean1':[0, 0], 
+    #             'mean2':[0, 0], 
+    #             'rho1': rho, 
+    #             'rho2': -rho,
+    #             'dim': 6
+    #         } for rho in rhos
+    #     ], 
+    #     'varying_param_name': 'rho1', # the parameter name which denotes the x-axis of the plot
+    #     'x_axis_name': 'correlation', 
+    # }, 
     # 'Mixed Gaussian +': {
     #     'model': MixedGaussian,
     #     'kwargs': [  # list of params
