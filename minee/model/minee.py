@@ -22,6 +22,11 @@ import matplotlib.animation as animation
 from ..util.google_drive_util import GoogleDrive
 from ..data.gaussian import Gaussian
 
+cuda = True if torch.cuda.is_available() else False
+
+FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
+
 class MineNet(nn.Module):
     def __init__(self, input_size=2, hidden_size=100):
         super().__init__()
@@ -126,7 +131,7 @@ class Minee():
             y = np.linspace(Ymin, Ymax, 300)
             xs, ys = np.meshgrid(x,y)
             # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-            mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            mesh = FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             self.ixy_list_shape = np.append(np.array(xs.shape), 0).tolist()
             # ixy_list = np.zeros(self.ixy_list_shape)
             for _ in range(self.rep):
@@ -533,7 +538,7 @@ class Minee():
                 y = np.linspace(Ymin, Ymax, 300)
                 xs, ys = np.meshgrid(x,y)
                 # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-                mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+                mesh = FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
                 fxy = self.XYlist_net[0](mesh)
                 fx = self.Xlist_net[0](mesh[:,[0]])
                 fy = self.Ylist_net[0](mesh[:,[1]])
