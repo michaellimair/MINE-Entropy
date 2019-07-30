@@ -6,11 +6,10 @@ import torch
 
 # Use GPU when available
 # Need to use Tensor to create the tensor of default type
-if torch.cuda.is_available():
-    torch.set_default_tensor_type(torch.cuda.FloatTensor)
-else:
-    torch.set_default_tensor_type(torch.FloatTensor)
+cuda = True if torch.cuda.is_available() else False
 
+FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -137,7 +136,7 @@ class Mine():
             y = np.linspace(Ymin, Ymax, 300)
             xs, ys = np.meshgrid(x,y)
             # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-            mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            mesh = FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             self.ixy_list_shape = np.append(np.array(xs.shape), 0).tolist()
             # ixy_list = np.zeros(self.ixy_list_shape)
             for _ in range(self.rep):
@@ -410,7 +409,7 @@ class Mine():
             y = np.linspace(Ymin, Ymax, 300)
             xs, ys = np.meshgrid(x,y)
             # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-            mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
+            mesh = FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             ixy = self.XYlist_net[0](mesh).detach().numpy()
             ixy = ixy.reshape(xs.shape[1], ys.shape[0])
 
