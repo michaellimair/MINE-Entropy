@@ -118,7 +118,7 @@ data = {
         'model': Dataset, 
         'kwargs': [
             {
-                'filepath':'Mutual Funds.csv', 
+                'filepath':'mutual_funds.csv', 
                 'col_x':x_col, 
                 'col_y':y_col,
                 'index':"({}_{})".format(x_col, y_col),

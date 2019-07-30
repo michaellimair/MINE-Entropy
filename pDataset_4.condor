@@ -1,50 +1,50 @@
 ###### pDataset_4 ######
 executable    = /usr/bin/python3
 arguments     = -m minee.pDataset_4
-input         = pDataset_4_a.in
-output        = pDataset_4_a.out
+input         = pDataset_4a.in
+output        = pDataset_4a.out
 error         = $(output).err
-log           = pDataset_4_a.log
+log           = pDataset_4a.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3
 arguments     = -m minee.pDataset_4
-input         = pDataset_4_b.in
-output        = pDataset_4_b.out
+input         = pDataset_4b.in
+output        = pDataset_4b.out
 error         = $(output).err
-log           = pDataset_4_b.log
+log           = pDataset_4b.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3
 arguments     = -m minee.pDataset_4
-input         = pDataset_4_c.in
-output        = pDataset_4_c.out
+input         = pDataset_4c.in
+output        = pDataset_4c.out
 error         = $(output).err
-log           = pDataset_4_c.log
+log           = pDataset_4c.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3
 arguments     = -m minee.pDataset_4
-input         = pDataset_4_d.in
-output        = pDataset_4_d.out
+input         = pDataset_4d.in
+output        = pDataset_4d.out
 error         = $(output).err
-log           = pDataset_4_d.log
+log           = pDataset_4d.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3
 arguments     = -m minee.pDataset_4
-input         = pDataset_4_e.in
-output        = pDataset_4_e.out
+input         = pDataset_4e.in
+output        = pDataset_4e.out
 error         = $(output).err
-log           = pDataset_4_e.log
+log           = pDataset_4e.log
 priority      = 20
 
 queue
