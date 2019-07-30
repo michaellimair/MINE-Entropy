@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 12
+cpu = 18
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
