@@ -38,7 +38,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("/public/michalim3", "experiments")
+output_path = os.path.join("/public/pdawieang2", "experiments")
 
 # ground truth is plotted in red
 model = {
