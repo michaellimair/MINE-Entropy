@@ -1,5 +1,5 @@
 ###### pDataset_4 ######
-executable    = /usr/bin/python3
+executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
 input         = pDataset_4a.in
 output        = pDataset_4a.out
@@ -9,7 +9,7 @@ priority      = 20
 
 queue
 
-executable    = /usr/bin/python3
+executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
 input         = pDataset_4b.in
 output        = pDataset_4b.out
@@ -19,7 +19,7 @@ priority      = 20
 
 queue
 
-executable    = /usr/bin/python3
+executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
 input         = pDataset_4c.in
 output        = pDataset_4c.out
@@ -29,7 +29,7 @@ priority      = 20
 
 queue
 
-executable    = /usr/bin/python3
+executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
 input         = pDataset_4d.in
 output        = pDataset_4d.out
@@ -39,7 +39,7 @@ priority      = 20
 
 queue
 
-executable    = /usr/bin/python3
+executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
 input         = pDataset_4e.in
 output        = pDataset_4e.out
