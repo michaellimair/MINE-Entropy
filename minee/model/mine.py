@@ -222,7 +222,7 @@ class Mine():
 
             if self.video_rate>0 and (i+1)%self.video_rate==0:
                 for j in range(self.rep):
-                    ixy = self.XYlist_net[j](mesh).detach().numpy()
+                    ixy = self.XYlist_net[j](mesh).detach().cpu().numpy()
                     ixy = ixy.reshape(xs.shape[1], ys.shape[0])
                     self.ixy_list[j] = np.append(self.ixy_list[j], ixy[...,None], axis=2)
 
@@ -412,7 +412,7 @@ class Mine():
             xs, ys = np.meshgrid(x,y)
             # mesh = torch.FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
             mesh = FloatTensor(np.hstack((xs.flatten()[:,None],ys.flatten()[:,None])))
-            ixy = self.XYlist_net[0](mesh).detach().numpy()
+            ixy = self.XYlist_net[0](mesh).detach().cpu().numpy()
             ixy = ixy.reshape(xs.shape[1], ys.shape[0])
 
             axCur = ax[0, 2]

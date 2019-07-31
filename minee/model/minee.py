@@ -235,7 +235,7 @@ class Minee():
                     fxy = self.XYlist_net[j](mesh)
                     fx = self.Xlist_net[j](mesh[:,[0]])
                     fy = self.Ylist_net[j](mesh[:,[1]])
-                    ixy = (fxy - fx - fy).detach().numpy()
+                    ixy = (fxy - fx - fy).detach().cpu().numpy()
                     ixy = ixy.reshape(xs.shape[1], ys.shape[0])
                     self.ixy_list[j] = np.append(self.ixy_list[j], ixy[...,None], axis=2)
 
@@ -546,7 +546,7 @@ class Minee():
                 fxy = self.XYlist_net[0](mesh)
                 fx = self.Xlist_net[0](mesh[:,[0]])
                 fy = self.Ylist_net[0](mesh[:,[1]])
-                ixy = (fxy - fx - fy).detach().numpy()
+                ixy = (fxy - fx - fy).detach().cpu().numpy()
                 ixy = ixy.reshape(xs.shape[1], ys.shape[0])
 
                 axCur = ax[1,0]
@@ -554,7 +554,7 @@ class Minee():
                 fig.colorbar(c, ax=axCur)
                 axCur.set_title('heatmap of i(x,y)')
 
-                fxy = fxy.detach().numpy().reshape(xs.shape[1], ys.shape[0])
+                fxy = fxy.detach().cpu().numpy().reshape(xs.shape[1], ys.shape[0])
                 axCur = ax[1,1]
                 axCur, c = plot_util.getHeatMap(axCur, xs, ys, fxy)
                 fig.colorbar(c, ax=axCur)
