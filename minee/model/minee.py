@@ -148,6 +148,10 @@ class Minee():
             self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
             self.Xlist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
             self.Ylist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
+            if cuda:
+                self.XYlist_net.cuda()
+                self.Xlist_net.cuda()
+                self.Ylist_net.cuda()
             self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
             self.Xlist_optimizer.append(optim.Adam(self.Xlist_net[i].parameters(),lr=self.lr))
             self.Ylist_optimizer.append(optim.Adam(self.Ylist_net[i].parameters(),lr=self.lr))
@@ -191,9 +195,9 @@ class Minee():
                     Train_X_ref = uniform_sample(self.Trainlist_X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
                     Train_Y_ref = uniform_sample(self.Trainlist_Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
-                self.XYlist_ref_t.append(torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
-                self.Xlist_ref_t.append(torch.Tensor(Train_X_ref))
-                self.Ylist_ref_t.append(torch.Tensor(Train_Y_ref))
+                self.XYlist_ref_t.append(FloatTensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1)))
+                self.Xlist_ref_t.append(FloatTensor(Train_X_ref))
+                self.Ylist_ref_t.append(FloatTensor(Train_Y_ref))
 
         if type(self.Train_dXY_list)==np.ndarray and self.Train_dXY_list.ndim == 2:
             start_i = len(self.Train_dXY_list[0,:]) + self.array_start
@@ -293,9 +297,9 @@ class Minee():
         if self.gaussian_ref:
             self.gaussian.sample_size = int(self.ref_batch_factor*batch_size)
         for i in range(self.rep):
-            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
-            X_t = torch.Tensor(X[i])
-            Y_t = torch.Tensor(Y[i])
+            XY_t = FloatTensor(np.concatenate((X[i],Y[i]),axis=1))
+            X_t = FloatTensor(X[i])
+            Y_t = FloatTensor(Y[i])
             batch_XY = resample(XY_t,batch_size=batch_size)
             batch_X = resample(X_t, batch_size=batch_size)
             batch_Y = resample(Y_t,batch_size=batch_size)
@@ -306,7 +310,7 @@ class Minee():
             else:
                 batch_X_ref = uniform_sample(X[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
                 batch_Y_ref = uniform_sample(Y[i],batch_size=int(self.ref_batch_factor*batch_size), window_scale=self.ref_window_scale)
-            batch_XY_ref = torch.Tensor(np.concatenate((batch_X_ref, batch_Y_ref),axis=1))
+            batch_XY_ref = FloatTensor(np.concatenate((batch_X_ref, batch_Y_ref),axis=1))
             batch_X_ref = batch_XY_ref[:,0:self.dim]
             batch_Y_ref = batch_XY_ref[:,-self.dim:]
             self.XYlist_optimizer[i].zero_grad()
@@ -341,9 +345,9 @@ class Minee():
         if self.gaussian_ref:
             self.gaussian.sample_size = int(self.sample_size*self.ref_batch_factor)
         for i in range(self.rep):
-            XY_t = torch.Tensor(np.concatenate((X[i],Y[i]),axis=1))
-            X_t = torch.Tensor(X[i])
-            Y_t = torch.Tensor(Y[i])
+            XY_t = FloatTensor(np.concatenate((X[i],Y[i]),axis=1))
+            X_t = FloatTensor(X[i])
+            Y_t = FloatTensor(Y[i])
             if self.fix_ref_est:
                 XY_ref_t = self.XYlist_ref_t[i]
                 X_ref_t = self.Xlist_ref_t[i]
@@ -356,9 +360,9 @@ class Minee():
                 Train_X_ref = uniform_sample(X[i],batch_size=int(self.sample_size*self.ref_batch_factor),window_scale=self.ref_window_scale)
                 Train_Y_ref = uniform_sample(Y[i],batch_size=int(self.sample_size*self.ref_batch_factor), window_scale=self.ref_window_scale)
 
-            XY_ref_t = torch.Tensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
-            Y_ref_t = torch.Tensor(Train_Y_ref)
-            X_ref_t = torch.Tensor(Train_X_ref)
+            XY_ref_t = FloatTensor(np.concatenate((Train_X_ref,Train_Y_ref),axis=1))
+            Y_ref_t = FloatTensor(Train_Y_ref)
+            X_ref_t = FloatTensor(Train_X_ref)
             dXY = torch.mean(self.XYlist_net[i](XY_t)) - (torch.logsumexp(self.XYlist_net[i](XY_ref_t), 0) - self.log_ref_size)
             dX = torch.mean(self.Xlist_net[i](X_t)) - (torch.logsumexp(self.Xlist_net[i](X_ref_t), 0) - self.log_ref_size)
             dY = torch.mean(self.Ylist_net[i](Y_t)) - (torch.logsumexp(self.Ylist_net[i](Y_ref_t), 0) - self.log_ref_size)

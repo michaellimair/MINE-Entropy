@@ -4,7 +4,6 @@ import numpy as np
 random_seed = 2
 np.random.seed(seed=random_seed)
 import torch
-# torch.manual_seed(seed=random_seed)
 from .model.mine import Mine
 from .model.minee import Minee
 # from .model.kraskov import Kraskov

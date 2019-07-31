@@ -16,6 +16,9 @@ import torch
 from . import pDataset_settings_4 as settings
 settings_file = "pDataset_settings_4.py"
 
+# Use GPU when available
+cuda = True if torch.cuda.is_available() else False
+
 def saveResultsFig(results_dict, experiment_path=""):
     """
     
@@ -216,6 +219,6 @@ def run_experiment():
 if __name__ == "__main__":
     random_seed = 0
     np.random.seed(seed=random_seed)
-    torch.manual_seed(seed=random_seed)
+    torch.cuda.manual_seed(seed=random_seed) if cuda else torch.manual_seed(seed=random_seeds)
     run_experiment()
     # run_experiment_batch_pop_ir()
