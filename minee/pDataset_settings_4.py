@@ -1,3 +1,5 @@
+
+
 import numpy as np
 random_seed = 2
 np.random.seed(seed=random_seed)
@@ -17,7 +19,7 @@ import os
 from datetime import datetime
 import numpy as np
 
-cpu = 18
+cpu = 4
 batch_size=50
 lr = 5e-5
 moving_average_rate = 0.1
@@ -37,7 +39,7 @@ video_frames=int(0)
 
 time_now = datetime.now()
 # output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "experiments")
-output_path = os.path.join("res", "experiments")
+output_path = os.path.join("/home/bsft18/michalim3/git_others/MINE-Entropy/res", "experiments")
 
 # ground truth is plotted in red
 model = {
@@ -118,7 +120,7 @@ data = {
         'model': Dataset, 
         'kwargs': [
             {
-                'filepath':'mutual_funds.csv', 
+                'filepath':'/home/bsft18/michalim3/git_others/MINE-Entropy/mutual_funds.csv', 
                 'col_x':x_col, 
                 'col_y':y_col,
                 'index':"({}_{})".format(x_col, y_col),

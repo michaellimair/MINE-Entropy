@@ -77,6 +77,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     prefix_name_loop = os.path.join(experiment_path, pathname)
     if not os.path.exists(prefix_name_loop):
         os.makedirs(prefix_name_loop, exist_ok=True)
+        print(googleDrive)
         if googleDrive:
             prefixID = googleDrive.createFolder(pathname, rootID)
     
