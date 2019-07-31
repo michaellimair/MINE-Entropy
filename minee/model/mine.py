@@ -146,7 +146,8 @@ class Mine():
         self.XYlist_optimizer = []
         for i in range(self.rep):
             self.XYlist_net.append(MineNet(input_size=self.dim*2,hidden_size=self.hidden_size))
-            self.XYlist_net.cuda() if cuda
+            if cuda:
+                self.XYlist_net.cuda()
             self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
 
         self.Train_dXY_list = np.zeros((self.rep, 0))
