@@ -1,50 +1,50 @@
 ###### pDataset_4 ######
 executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
-input         = pDataset_4a.in
-output        = pDataset_4a.out
+input         = condor/pDataset_4a.in
+output        = condor/pDataset_4a.out
 error         = $(output).err
-log           = pDataset_4a.log
+log           = condor/pDataset_4a.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
-input         = pDataset_4b.in
-output        = pDataset_4b.out
+input         = condor/pDataset_4b.in
+output        = condor/pDataset_4b.out
 error         = $(output).err
-log           = pDataset_4b.log
+log           = condor/pDataset_4b.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
-input         = pDataset_4c.in
-output        = pDataset_4c.out
+input         = condor/pDataset_4c.in
+output        = condor/pDataset_4c.out
 error         = $(output).err
-log           = pDataset_4c.log
+log           = condor/pDataset_4c.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
-input         = pDataset_4d.in
-output        = pDataset_4d.out
+input         = condor/pDataset_4d.in
+output        = condor/pDataset_4d.out
 error         = $(output).err
-log           = pDataset_4d.log
+log           = condor/pDataset_4d.log
 priority      = 20
 
 queue
 
 executable    = /usr/bin/python3.5
 arguments     = -m minee.pDataset_4
-input         = pDataset_4e.in
-output        = pDataset_4e.out
+input         = condor/pDataset_4e.in
+output        = condor/pDataset_4e.out
 error         = $(output).err
-log           = pDataset_4e.log
+log           = condor/pDataset_4e.log
 priority      = 20
 
 queue
