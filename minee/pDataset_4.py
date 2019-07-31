@@ -81,6 +81,7 @@ def get_estimation(model_name, model, data_model, data_name, varying_param_name,
     ground_truth = data_model.ground_truth
 
     pathname = "pop={}_batch={}_{}_{}={}_model={}".format(pop, batch, data_name, varying_param_name, varying_param_value,model_name)
+    prefixID = ""
     prefix_name_loop = os.path.join(experiment_path, pathname)
     if not os.path.exists(prefix_name_loop):
         os.makedirs(prefix_name_loop, exist_ok=True)
