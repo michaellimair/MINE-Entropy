@@ -4,13 +4,7 @@
   0%|          | 0/1 [00:00<?, ?it/s][A[A
 
 
-  0%|          | 0/3 [00:00<?, ?it/s][A[A[A
-
-
-[A[A[A
-
-[A[A
-[ATraceback (most recent call last):
+  0%|          | 0/3 [00:00<?, ?it/s][A[A[ATraceback (most recent call last):
   File "/usr/lib/python3.5/runpy.py", line 184, in _run_module_as_main
     "__main__", mod_spec)
   File "/usr/lib/python3.5/runpy.py", line 85, in _run_code
@@ -23,16 +17,34 @@
     for pop_, batch_ in tqdm(settings.pop_batch)
   File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 921, in __call__
     if self.dispatch_one_batch(iterator):
-  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 754, in dispatch_one_batch
-    self._pickle_cache)
-  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 210, in __init__
-    self.items = list(iterator_slice)
-  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 179, in <genexpr>
-    for kwargs in tqdm(data['kwargs'])
-  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/data/dataset.py", line 19, in __init__
-    data = np.genfromtxt(self.path, delimiter=self.delim)[self.row_nan:,self.col_nan:]
-  File "/usr/local/lib/python3.5/dist-packages/numpy/lib/npyio.py", line 1951, in genfromtxt
-    for (i, line) in enumerate(itertools.chain([first_line, ], fhd)):
-  File "/usr/lib/python3.5/encodings/ascii.py", line 26, in decode
-    return codecs.ascii_decode(input, self.errors)[0]
-UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2 in position 169: ordinal not in range(128)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 759, in dispatch_one_batch
+    self._dispatch(tasks)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 716, in _dispatch
+    job = self._backend.apply_async(batch, callback=cb)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/_parallel_backends.py", line 182, in apply_async
+    result = ImmediateResult(func)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/_parallel_backends.py", line 549, in __init__
+    self.results = batch()
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 225, in __call__
+    for func, args, kwargs in self.items]
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 225, in <listcomp>
+    for func, args, kwargs in self.items]
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 119, in get_estimation
+    mi_estimation = model['model'].predict(data_model)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/model/mine.py", line 367, in predict
+    self.fit(data_model)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/model/mine.py", line 228, in fit
+    self.save_figure(suffix="iter={}".format(self.snapshot[snapshot_i]))
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/model/mine.py", line 413, in save_figure
+    ixy = self.XYlist_net[0](mesh).detach().numpy()
+  File "/usr/local/lib/python3.5/dist-packages/torch/nn/modules/module.py", line 489, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/model/mine.py", line 47, in forward
+    output = F.elu(self.fc1(input))
+  File "/usr/local/lib/python3.5/dist-packages/torch/nn/modules/module.py", line 489, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/usr/local/lib/python3.5/dist-packages/torch/nn/modules/linear.py", line 67, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/usr/local/lib/python3.5/dist-packages/torch/nn/functional.py", line 1352, in linear
+    ret = torch.addmm(torch.jit._unwrap_optional(bias), input, weight.t())
+RuntimeError: Expected object of backend CPU but got backend CUDA for argument #4 'mat1'
