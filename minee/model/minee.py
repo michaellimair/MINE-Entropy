@@ -149,9 +149,9 @@ class Minee():
             self.Xlist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
             self.Ylist_net.append(MineNet(input_size=self.dim,hidden_size=self.hidden_size))
             if cuda:
-                self.XYlist_net.cuda()
-                self.Xlist_net.cuda()
-                self.Ylist_net.cuda()
+                self.XYlist_net[i].cuda()
+                self.Xlist_net[i].cuda()
+                self.Ylist_net[i].cuda()
             self.XYlist_optimizer.append(optim.Adam(self.XYlist_net[i].parameters(),lr=self.lr))
             self.Xlist_optimizer.append(optim.Adam(self.Xlist_net[i].parameters(),lr=self.lr))
             self.Ylist_optimizer.append(optim.Adam(self.Ylist_net[i].parameters(),lr=self.lr))
