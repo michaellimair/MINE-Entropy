@@ -1,0 +1,38 @@
+  0%|          | 0/3 [00:00<?, ?it/s]
+  0%|          | 0/2 [00:00<?, ?it/s][A
+
+  0%|          | 0/1 [00:00<?, ?it/s][A[A
+
+
+  0%|          | 0/3 [00:00<?, ?it/s][A[A[A
+
+
+[A[A[A
+
+[A[A
+[ATraceback (most recent call last):
+  File "/usr/lib/python3.5/runpy.py", line 184, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/lib/python3.5/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 220, in <module>
+    run_experiment()
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 214, in run_experiment
+    plot(experiment_path, rootID, googleDrive)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 176, in plot
+    for pop_, batch_ in tqdm(settings.pop_batch)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 921, in __call__
+    if self.dispatch_one_batch(iterator):
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 754, in dispatch_one_batch
+    self._pickle_cache)
+  File "/home/bsft18/michalim3/.local/lib/python3.5/site-packages/joblib/parallel.py", line 210, in __init__
+    self.items = list(iterator_slice)
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/pDataset_4.py", line 179, in <genexpr>
+    for kwargs in tqdm(data['kwargs'])
+  File "/home/bsft18/michalim3/git_others/MINE-Entropy/minee/data/dataset.py", line 19, in __init__
+    data = np.genfromtxt(self.path, delimiter=self.delim)[self.row_nan:,self.col_nan:]
+  File "/usr/local/lib/python3.5/dist-packages/numpy/lib/npyio.py", line 1951, in genfromtxt
+    for (i, line) in enumerate(itertools.chain([first_line, ], fhd)):
+  File "/usr/lib/python3.5/encodings/ascii.py", line 26, in decode
+    return codecs.ascii_decode(input, self.errors)[0]
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2 in position 169: ordinal not in range(128)
